@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  projects Project[]
+  medias   Media[]
+}
+
+model Project {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  content       String?
+  featuredImage String
+  demoUrl       String?
+  githubUrl     String?
+  links         String?
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Media {
+  id          String    @id @default(uuid())
+  title       String
+  url         String
+  description String?
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  isFeatured  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(uuid())
+  name      String
+  icon      String?
+  level     String?  // e.g. "Beginner", "Intermediate", "Advanced"
+  category  String   // e.g. "Frontend", "Backend", "AI", "Design"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Certification {
+  id            String    @id @default(uuid())
+  title         String
+  issuer        String
+  issueDate     DateTime?
+  credentialId  String?
+  credentialUrl String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Achievement {
+  id          String    @id @default(uuid())
+  title       String
+  issuer      String
+  date        DateTime?
+  description String?
+  image       String?
+  content     String?
+  links       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model CommunityActivity {
+  id           String   @id @default(uuid())
+  title        String
+  role         String
+  organization String
+  dateRange    String
+  description  String?
+  image        String?
+  content      String?
+  links        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
