@@ -122,11 +122,12 @@ export default function AdminDashboardClient({
     }
     const startPos = textarea.selectionStart;
     const endPos = textarea.selectionEnd;
-    const beforeText = projContent.substring(0, startPos);
-    const afterText = projContent.substring(endPos, projContent.length);
 
-    const newContent = beforeText + insertedText + afterText;
-    setProjContent(newContent);
+    setProjContent(prev => {
+      const beforeText = prev.substring(0, startPos);
+      const afterText = prev.substring(endPos, prev.length);
+      return beforeText + insertedText + afterText;
+    });
 
     // Keep focus and position cursor after inserted text
     setTimeout(() => {
@@ -245,11 +246,12 @@ export default function AdminDashboardClient({
     }
     const startPos = textarea.selectionStart;
     const endPos = textarea.selectionEnd;
-    const beforeText = achContent.substring(0, startPos);
-    const afterText = achContent.substring(endPos, achContent.length);
 
-    const newContent = beforeText + insertedText + afterText;
-    setAchContent(newContent);
+    setAchContent(prev => {
+      const beforeText = prev.substring(0, startPos);
+      const afterText = prev.substring(endPos, prev.length);
+      return beforeText + insertedText + afterText;
+    });
 
     // Keep focus and position cursor after inserted text
     setTimeout(() => {
@@ -281,11 +283,12 @@ export default function AdminDashboardClient({
     }
     const startPos = textarea.selectionStart;
     const endPos = textarea.selectionEnd;
-    const beforeText = commContent.substring(0, startPos);
-    const afterText = commContent.substring(endPos, commContent.length);
 
-    const newContent = beforeText + insertedText + afterText;
-    setCommContent(newContent);
+    setCommContent(prev => {
+      const beforeText = prev.substring(0, startPos);
+      const afterText = prev.substring(endPos, prev.length);
+      return beforeText + insertedText + afterText;
+    });
 
     // Keep focus and position cursor after inserted text
     setTimeout(() => {
@@ -477,7 +480,8 @@ export default function AdminDashboardClient({
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
-    const files = e.target.files;
+    const inputEl = e.target;
+    const files = inputEl.files;
     if (!files || files.length === 0) return;
 
     if (target === "project") setUploadingProjImage(true);
@@ -538,7 +542,9 @@ export default function AdminDashboardClient({
       alert("Error uploading file");
     } finally {
       // Clear file input value to allow re-uploading the same file
-      e.target.value = "";
+      if (inputEl) {
+        inputEl.value = "";
+      }
 
       if (target === "project") setUploadingProjImage(false);
       else if (target === "about") setUploadingAboutPhoto(false);
