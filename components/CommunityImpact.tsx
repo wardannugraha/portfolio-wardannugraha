@@ -130,9 +130,11 @@ export default function CommunityImpact({ initialActivities }: CommunityImpactPr
 
                       {/* Description */}
                       {act.description && (
-                        <p className="hidden sm:block text-zinc-400 text-xs font-light leading-relaxed line-clamp-3">
-                          {act.description}
-                        </p>
+                        <div className="hidden sm:block mt-1.5">
+                          <p className="text-zinc-400 text-xs font-light leading-relaxed line-clamp-3">
+                            {act.description}
+                          </p>
+                        </div>
                       )}
                     </div>
 

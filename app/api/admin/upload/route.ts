@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         overwrite: true,
         resource_type: "auto",
         transformation: [
-          { width: 1200, height: 1200, crop: "limit" },
+          { width: 1600, height: 1600, crop: "limit" },
           { quality: "auto" }
         ]
       });

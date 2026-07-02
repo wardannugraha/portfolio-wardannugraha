@@ -363,7 +363,11 @@ export default async function Home() {
                     <ArrowUpRight className="hidden sm:block w-4 h-4 text-zinc-500 group-hover:text-amber-400 transition-colors duration-300 mt-0.5 flex-shrink-0" />
                   </div>
                   <h3 className="text-xs sm:text-lg font-semibold text-white mt-1 sm:mt-2 leading-tight group-hover:text-amber-300 transition-colors duration-300 line-clamp-2">{ach.title}</h3>
-                  <p className="hidden sm:block text-zinc-500 text-xs mt-1 font-light line-clamp-2">{ach.description}</p>
+                  <div className="hidden sm:block mt-1">
+                    <p className="text-zinc-500 text-xs font-light line-clamp-2">
+                      {ach.description}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center mt-2 sm:mt-4 gap-2">
                   <span className="text-[9px] sm:text-xs text-zinc-500 truncate max-w-[60%]">{ach.issuer}</span>

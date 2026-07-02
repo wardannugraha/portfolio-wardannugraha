@@ -48,6 +48,14 @@ export async function isImageReferencedElsewhere(url: string, excludeId?: string
     });
     if (projectCount > 0) return true;
 
+    // 1b. Check Project content markdown
+    const projectContentCount = await prisma.project.count({
+      where: {
+        content: { contains: url },
+      },
+    });
+    if (projectContentCount > 0) return true;
+
     // 2. Check Achievement certifications
     const achievementCount = await prisma.achievement.count({
       where: {
@@ -57,6 +65,14 @@ export async function isImageReferencedElsewhere(url: string, excludeId?: string
     });
     if (achievementCount > 0) return true;
 
+    // 2b. Check Achievement content markdown
+    const achievementContentCount = await prisma.achievement.count({
+      where: {
+        content: { contains: url },
+      },
+    });
+    if (achievementContentCount > 0) return true;
+
     // 3. Check Community activity photos
     const communityCount = await prisma.communityActivity.count({
       where: {
@@ -65,6 +81,14 @@ export async function isImageReferencedElsewhere(url: string, excludeId?: string
       },
     });
     if (communityCount > 0) return true;
+
+    // 3b. Check Community activity content markdown
+    const communityContentCount = await prisma.communityActivity.count({
+      where: {
+        content: { contains: url },
+      },
+    });
+    if (communityContentCount > 0) return true;
 
     // 4. Check Media urls (supports cover photo segments like videoUrl||coverUrl)
     const mediaCount = await prisma.media.count({

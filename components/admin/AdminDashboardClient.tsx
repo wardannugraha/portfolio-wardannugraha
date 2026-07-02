@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut, 
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
@@ -311,6 +311,72 @@ export default function AdminDashboardClient({
   // Asset Picker States
   const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
   const [onSelectAsset, setOnSelectAsset] = useState<(url: string) => void>(() => () => {});
+  const [galleryAssets, setGalleryAssets] = useState<{ url: string; inUse: boolean }[]>([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [hasMoreAssets, setHasMoreAssets] = useState(false);
+  const [assetsCursor, setAssetsCursor] = useState<string | null>(null);
+  const [assetsOffset, setAssetsOffset] = useState<number>(0);
+
+  const fetchAssets = async (reset: boolean = false) => {
+    setIsLoadingAssets(true);
+    try {
+      const limit = 12;
+      const currentOffset = reset ? 0 : assetsOffset;
+      const currentCursor = reset ? "" : (assetsCursor || "");
+      
+      let url = `/api/admin/assets?limit=${limit}`;
+      if (currentCursor) {
+        url += `&nextCursor=${encodeURIComponent(currentCursor)}`;
+      } else {
+        url += `&offset=${currentOffset}`;
+      }
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (reset) {
+          setGalleryAssets(data.assets || []);
+        } else {
+          setGalleryAssets(prev => [...prev, ...(data.assets || [])]);
+        }
+        setAssetsCursor(data.nextCursor || null);
+        setAssetsOffset(reset ? limit : currentOffset + limit);
+        setHasMoreAssets(data.hasMore || false);
+      } else {
+        console.error("Failed to fetch gallery assets:", data.error);
+      }
+    } catch (err) {
+      console.error("Error fetching gallery assets:", err);
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAssetPickerOpen) {
+      fetchAssets(true);
+    }
+  }, [isAssetPickerOpen]);
+
+  const handleDeleteAsset = (url: string) => {
+    askConfirmation("Are you sure you want to permanently delete this photo? This cannot be undone.", async () => {
+      try {
+        const res = await fetch(`/api/admin/assets?url=${encodeURIComponent(url)}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setGalleryAssets(prev => prev.filter(item => item.url !== url));
+          showNotification("Photo deleted successfully!");
+        } else {
+          alert(data.error || "Failed to delete photo");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An error occurred during deletion");
+      }
+    });
+  };
 
   // Custom Error Toast State
   const [errorMsg, setErrorMsg] = useState("");
@@ -411,8 +477,8 @@ export default function AdminDashboardClient({
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     if (target === "project") setUploadingProjImage(true);
     else if (target === "about") setUploadingAboutPhoto(true);
@@ -424,45 +490,56 @@ export default function AdminDashboardClient({
     else if (target === "mediaCover") setUploadingMediaCover(true);
     else setUploadingMediaUrl(true);
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const res = await fetch(`/api/admin/upload?target=${target}`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        if (target === "project") {
-          setProjImage(data.url);
-        } else if (target === "about") {
-          setAboutPhoto(data.url);
-        } else if (target === "content") {
-          insertAtCursor(`\n![Image](${data.url})\n`);
-          showNotification("Image uploaded and inserted successfully!");
-        } else if (target === "achContent") {
-          insertAtAchCursor(`\n![Image](${data.url})\n`);
-          showNotification("Image uploaded and inserted successfully!");
-        } else if (target === "commContent") {
-          insertAtCommCursor(`\n![Image](${data.url})\n`);
-          showNotification("Image uploaded and inserted successfully!");
-        } else if (target === "achievement") {
-          setAchImage(data.url);
-        } else if (target === "community") {
-          setCommImage(data.url);
-        } else if (target === "mediaCover") {
-          setMediaCoverUrl(data.url);
+      const isMultiTarget = target === "content" || target === "achContent" || target === "commContent";
+      const filesToUpload = isMultiTarget ? Array.from(files) : [files[0]];
+      let uploadSuccessCount = 0;
+
+      for (const file of filesToUpload) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(`/api/admin/upload?target=${target}`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          uploadSuccessCount++;
+          if (target === "project") {
+            setProjImage(data.url);
+          } else if (target === "about") {
+            setAboutPhoto(data.url);
+          } else if (target === "content") {
+            insertAtCursor(`\n![Image](${data.url})\n`);
+          } else if (target === "achContent") {
+            insertAtAchCursor(`\n![Image](${data.url})\n`);
+          } else if (target === "commContent") {
+            insertAtCommCursor(`\n![Image](${data.url})\n`);
+          } else if (target === "achievement") {
+            setAchImage(data.url);
+          } else if (target === "community") {
+            setCommImage(data.url);
+          } else if (target === "mediaCover") {
+            setMediaCoverUrl(data.url);
+          } else {
+            setMediaUrl(data.url);
+          }
         } else {
-          setMediaUrl(data.url);
+          alert(`${file.name} upload failed: ${data.error || "Unknown error"}`);
         }
-      } else {
-        alert(data.error || "Upload failed");
+      }
+
+      if (uploadSuccessCount > 0) {
+        showNotification(`${uploadSuccessCount} image(s) uploaded and inserted successfully!`);
       }
     } catch (err) {
       console.error(err);
       alert("Error uploading file");
     } finally {
+      // Clear file input value to allow re-uploading the same file
+      e.target.value = "";
+
       if (target === "project") setUploadingProjImage(false);
       else if (target === "about") setUploadingAboutPhoto(false);
       else if (target === "content") setUploadingContentImage(false);
@@ -902,32 +979,7 @@ export default function AdminDashboardClient({
     });
   };
 
-  // Compile list of unique image URLs previously uploaded
-  const existingAssets: string[] = [];
-  projects.forEach(p => {
-    if (p.featuredImage && !existingAssets.includes(p.featuredImage)) {
-      existingAssets.push(p.featuredImage);
-    }
-  });
-  media.forEach(m => {
-    if (m.url) {
-      const [vUrl, cUrl] = m.url.split("||");
-      
-      if (vUrl && !existingAssets.includes(vUrl)) {
-        const isImage = /\.(jpeg|jpg|gif|png|webp|svg)/i.test(vUrl) || vUrl.includes("res.cloudinary.com") || vUrl.includes("images.unsplash.com");
-        if (isImage) {
-          existingAssets.push(vUrl);
-        }
-      }
-      
-      if (cUrl && !existingAssets.includes(cUrl)) {
-        existingAssets.push(cUrl);
-      }
-    }
-  });
-  if (aboutPhoto && !existingAssets.includes(aboutPhoto)) {
-    existingAssets.push(aboutPhoto);
-  }
+
 
   return (
     <div className="min-h-screen bg-[#030303] text-zinc-100 flex flex-col md:flex-row pt-16">
@@ -1256,6 +1308,7 @@ export default function AdminDashboardClient({
                           <input
                             type="file"
                             accept="image/*"
+                            multiple
                             className="hidden"
                             onChange={(e) => handleFileUpload(e, "content")}
                             disabled={uploadingContentImage}
@@ -2426,7 +2479,40 @@ export default function AdminDashboardClient({
                 <div className="space-y-6">
                   {/* Markdown Editor Toolbar */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Rich Content / Details Page Markdown</label>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Rich Content / Details Page Markdown</label>
+                      <div className="flex gap-3">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer">
+                          {uploadingContentImage ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Plus className="w-3.5 h-3.5" />
+                          )}
+                          <span>Upload & Insert</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "achContent")}
+                            disabled={uploadingContentImage}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOnSelectAsset(() => (url: string) => {
+                              insertAtAchCursor(`\n![Image](${url})\n`);
+                            });
+                            setIsAssetPickerOpen(true);
+                          }}
+                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Pilih Galeri</span>
+                        </button>
+                      </div>
+                    </div>
                     <div className="flex flex-col">
                       <div className="flex flex-wrap gap-1 p-1.5 bg-white/5 border border-white/10 rounded-t-xl">
                         <button
@@ -2870,7 +2956,40 @@ export default function AdminDashboardClient({
                   </div>
                   {/* Rich Content Markdown Editor */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Rich Content / Details Page Markdown</label>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Rich Content / Details Page Markdown</label>
+                      <div className="flex gap-3">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer">
+                          {uploadingContentImage ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Plus className="w-3.5 h-3.5" />
+                          )}
+                          <span>Upload & Insert</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "commContent")}
+                            disabled={uploadingContentImage}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOnSelectAsset(() => (url: string) => {
+                              insertAtCommCursor(`\n![Image](${url})\n`);
+                            });
+                            setIsAssetPickerOpen(true);
+                          }}
+                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <span>Pilih Galeri</span>
+                        </button>
+                      </div>
+                    </div>
                     <div className="flex flex-col">
                       <div className="flex flex-wrap gap-1 p-1.5 bg-white/5 border border-white/10 rounded-t-xl">
                         <button
@@ -3274,32 +3393,82 @@ export default function AdminDashboardClient({
         >
           <div className="space-y-4">
             <p className="text-xs text-zinc-400">Choose a photo from files you have previously uploaded to save storage space.</p>
-            {existingAssets.length === 0 ? (
+            {isLoadingAssets && galleryAssets.length === 0 ? (
+              <div className="py-8 flex justify-center items-center gap-2 text-zinc-500 text-xs">
+                <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                <span>Loading assets...</span>
+              </div>
+            ) : galleryAssets.length === 0 ? (
               <div className="py-8 text-center border border-dashed border-white/10 rounded-2xl text-zinc-500 text-xs">
                 No existing photo uploads found.
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 max-h-[50vh] overflow-y-auto pr-1">
-                {existingAssets.map((url) => (
-                  <button
-                    key={url}
-                    type="button"
-                    onClick={() => {
-                      onSelectAsset(url);
-                      setIsAssetPickerOpen(false);
-                    }}
-                    className="aspect-square rounded-xl border border-white/5 hover:border-violet-500 bg-zinc-950 overflow-hidden relative group cursor-pointer transition-all hover:scale-[1.03] outline-none"
-                  >
-                    <img
-                      src={getThumbnailUrl(url)}
-                      alt="Asset"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs font-semibold text-white transition-opacity">
-                      Select
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 max-h-[45vh] overflow-y-auto pr-1">
+                  {galleryAssets.map((asset) => (
+                    <div
+                      key={asset.url}
+                      className="aspect-square rounded-xl border border-white/5 bg-zinc-950 overflow-hidden relative group hover:border-violet-500 transition-all"
+                    >
+                      {/* Image Click to Select */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelectAsset(asset.url);
+                          setIsAssetPickerOpen(false);
+                        }}
+                        className="w-full h-full text-left outline-none cursor-pointer"
+                      >
+                        <img
+                          src={getThumbnailUrl(asset.url)}
+                          alt="Asset"
+                          className="object-cover w-full h-full"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] font-semibold text-white transition-opacity">
+                          Select
+                        </div>
+                      </button>
+
+                      {/* Active green checkmark indicator */}
+                      {asset.inUse && (
+                        <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-emerald-500 border border-white/10 flex items-center justify-center text-zinc-950 shadow-md select-none">
+                          <Check className="w-3 h-3 stroke-[4]" />
+                        </div>
+                      )}
+
+                      {/* Delete Button (only if not in use) */}
+                      {!asset.inUse && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAsset(asset.url);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
+                          title="Delete unused photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
-                  </button>
-                ))}
+                  ))}
+                </div>
+                
+                {hasMoreAssets && (
+                  <div className="pt-2 flex justify-center">
+                    <button
+                      type="button"
+                      disabled={isLoadingAssets}
+                      onClick={() => fetchAssets(false)}
+                      className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 shadow-md"
+                    >
+                      {isLoadingAssets ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : null}
+                      <span>Tampilkan Lebih Banyak</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
