@@ -500,8 +500,18 @@ export default function AdminDashboardClient({
       let uploadSuccessCount = 0;
 
       for (const file of filesToUpload) {
+        // Compress image client-side before sending to server (prevents 413 Vercel limits)
+        let fileToUpload: Blob = file;
+        try {
+          if (file.type.startsWith("image/")) {
+            fileToUpload = await resizeAndCompressImage(file, 1600, 1600, 0.85);
+          }
+        } catch (compressErr) {
+          console.warn("Client-side compression failed, uploading original file:", compressErr);
+        }
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToUpload, file.name);
 
         const res = await fetch(`/api/admin/upload?target=${target}`, {
           method: "POST",
@@ -3612,4 +3622,67 @@ function getThumbnailUrl(url: string) {
     return url.replace("/image/upload/", "/image/upload/w_150,h_100,c_fill,q_auto,f_auto/");
   }
   return url;
+}
+
+function resizeAndCompressImage(
+  file: File,
+  maxWidth: number = 1600,
+  maxHeight: number = 1600,
+  quality: number = 0.85
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              resolve(file);
+            }
+          },
+          file.type || "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
 }
