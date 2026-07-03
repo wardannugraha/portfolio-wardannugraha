@@ -7,7 +7,10 @@ export async function GET() {
   try {
     const media = await prisma.media.findMany({
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
     return NextResponse.json({ success: true, data: media });
   } catch (error) {
@@ -22,11 +25,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, title, url, description, categoryId, isFeatured } = await request.json();
+    const { id, title, url, description, categoryId, isFeatured, order } = await request.json();
 
     if (!title || !url) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
+
+    const parsedOrder = typeof order === 'number' ? order : (order ? Number(order) : 0);
 
     let media;
     if (id) {
@@ -53,6 +58,7 @@ export async function POST(request: Request) {
           description,
           categoryId: categoryId || null,
           isFeatured: !!isFeatured,
+          order: parsedOrder,
         },
       });
     } else {
@@ -63,6 +69,7 @@ export async function POST(request: Request) {
           description,
           categoryId: categoryId || null,
           isFeatured: !!isFeatured,
+          order: parsedOrder,
         },
       });
     }

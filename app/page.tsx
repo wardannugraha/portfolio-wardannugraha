@@ -207,22 +207,33 @@ export default async function Home() {
     projects = await prisma.project.findMany({
       include: { category: true },
       orderBy: [
+        { order: "asc" },
         { isFeatured: "desc" },
         { createdAt: "desc" }
       ],
     });
     achievements = await prisma.achievement.findMany({
-      orderBy: { date: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { date: "desc" }
+      ],
     });
     community = await prisma.communityActivity.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
     skills = await prisma.skill.findMany({
-      orderBy: { category: "asc" },
+      orderBy: [
+        { order: "asc" },
+        { category: "asc" }
+      ],
     });
     media = await prisma.media.findMany({
       include: { category: true },
       orderBy: [
+        { order: "asc" },
         { isFeatured: "desc" },
         { createdAt: "desc" }
       ],

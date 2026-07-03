@@ -28,24 +28,39 @@ export default async function AdminDashboard() {
     
     projects = await prisma.project.findMany({
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
 
     media = await prisma.media.findMany({
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
 
     skills = await prisma.skill.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
 
     achievements = await prisma.achievement.findMany({
-      orderBy: { date: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { date: "desc" }
+      ],
     });
 
     communityActivities = await prisma.communityActivity.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
 
     aboutMeSetting = await prisma.siteSetting.findUnique({

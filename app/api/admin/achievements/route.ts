@@ -6,7 +6,10 @@ import { deleteCloudinaryImage } from "@/lib/cloudinary";
 export async function GET() {
   try {
     const achievements = await prisma.achievement.findMany({
-      orderBy: { date: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { date: "desc" }
+      ],
     });
     return NextResponse.json({ success: true, data: achievements });
   } catch (error) {
@@ -21,13 +24,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, title, issuer, date, description, image, content, links } = await request.json();
+    const { id, title, issuer, date, description, image, content, links, order } = await request.json();
 
     if (!title || !issuer) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
     const parsedDate = date ? new Date(date) : null;
+    const parsedOrder = typeof order === 'number' ? order : (order ? Number(order) : 0);
 
     let achievement;
     if (id) {
@@ -50,6 +54,7 @@ export async function POST(request: Request) {
           image: image || null,
           content: content || null,
           links: links || null,
+          order: parsedOrder,
         },
       });
     } else {
@@ -62,6 +67,7 @@ export async function POST(request: Request) {
           image: image || null,
           content: content || null,
           links: links || null,
+          order: parsedOrder,
         },
       });
     }

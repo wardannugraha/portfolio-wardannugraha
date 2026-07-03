@@ -5,7 +5,10 @@ import { verifySession } from "@/lib/auth";
 export async function GET() {
   try {
     const skills = await prisma.skill.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
     return NextResponse.json({ success: true, data: skills });
   } catch (error) {
@@ -20,11 +23,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, name, level, category, icon } = await request.json();
+    const { id, name, level, category, icon, order } = await request.json();
 
     if (!name || !category) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
+
+    const parsedOrder = typeof order === 'number' ? order : (order ? Number(order) : 0);
 
     let skill;
     if (id) {
@@ -36,6 +41,7 @@ export async function POST(request: Request) {
           level: level ? String(level) : null,
           category,
           icon: icon || null,
+          order: parsedOrder,
         },
       });
     } else {
@@ -46,6 +52,7 @@ export async function POST(request: Request) {
           level: level ? String(level) : null,
           category,
           icon: icon || null,
+          order: parsedOrder,
         },
       });
     }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { 
-  LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut, 
+import {
+  LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut,
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
   Bold, Italic, Link, Image, Video, Heading, List, Quote, AlertCircle,
   ChevronUp, ChevronDown, Menu
@@ -27,6 +27,8 @@ interface Project {
   categoryId: string;
   category: Category;
   isFeatured: boolean;
+  order: number;
+  createdAt: any;
 }
 
 interface Media {
@@ -37,6 +39,8 @@ interface Media {
   categoryId: string | null;
   category: Category | null;
   isFeatured: boolean;
+  order: number;
+  createdAt: any;
 }
 
 interface Skill {
@@ -44,6 +48,7 @@ interface Skill {
   name: string;
   level: string | null;
   category: string;
+  order: number;
 }
 
 interface Achievement {
@@ -55,6 +60,7 @@ interface Achievement {
   image: string | null;
   content: string | null;
   links: string | null;
+  order: number;
 }
 
 interface CommunityActivity {
@@ -67,6 +73,8 @@ interface CommunityActivity {
   image: string | null;
   content: string | null;
   links: string | null;
+  order: number;
+  createdAt: any;
 }
 
 interface AdminDashboardClientProps {
@@ -83,9 +91,9 @@ interface AdminDashboardClientProps {
   initialContactLinks: string;
 }
 
-export default function AdminDashboardClient({ 
-  initialProjects, 
-  initialMedia, 
+export default function AdminDashboardClient({
+  initialProjects,
+  initialMedia,
   categories,
   initialSkills,
   initialAchievements,
@@ -102,6 +110,20 @@ export default function AdminDashboardClient({
   const [media, setMedia] = useState<Media[]>(initialMedia);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Filtering states
+  const [selectedProjCategory, setSelectedProjCategory] = useState("all");
+  const [selectedMediaCategory, setSelectedMediaCategory] = useState("all");
+
+  const filteredProjects = projects.filter(p => selectedProjCategory === "all" || p.categoryId === selectedProjCategory);
+  const filteredMedia = media.filter(m => selectedMediaCategory === "all" || m.categoryId === selectedMediaCategory);
+
+  // Ordering states for forms
+  const [projOrder, setProjOrder] = useState(0);
+  const [mediaOrder, setMediaOrder] = useState(0);
+  const [skillOrder, setSkillOrder] = useState(0);
+  const [achOrder, setAchOrder] = useState(0);
+  const [commOrder, setCommOrder] = useState(0);
 
   // File Upload States
   const [uploadingProjImage, setUploadingProjImage] = useState(false);
@@ -298,6 +320,130 @@ export default function AdminDashboardClient({
     }, 50);
   };
 
+  // Sorting Helpers
+  const sortProjects = (list: Project[]) => {
+    return [...list].sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  };
+
+  const sortMedia = (list: Media[]) => {
+    return [...list].sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  };
+
+  const sortAchievements = (list: Achievement[]) => {
+    return [...list].sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateB - dateA;
+    });
+  };
+
+  const sortSkills = (list: Skill[]) => {
+    return [...list].sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return a.category.localeCompare(b.category);
+    });
+  };
+
+  const sortCommunity = (list: CommunityActivity[]) => {
+    return [...list].sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  };
+
+  const handleMoveItem = async (
+    type: "projects" | "media" | "achievements" | "skills" | "community",
+    id: string,
+    direction: "up" | "down"
+  ) => {
+    let fullList: any[] = [];
+    let setList: React.Dispatch<React.SetStateAction<any[]>> = () => { };
+
+    if (type === "projects") {
+      fullList = [...projects];
+      setList = setProjects as any;
+    } else if (type === "media") {
+      fullList = [...media];
+      setList = setMedia as any;
+    } else if (type === "achievements") {
+      fullList = [...achievements];
+      setList = setAchievements as any;
+    } else if (type === "skills") {
+      fullList = [...skills];
+      setList = setSkills as any;
+    } else if (type === "community") {
+      fullList = [...community];
+      setList = setCommunity as any;
+    }
+
+    // Filtered subset check to make visual swap natural if filtering is active
+    let filteredSubset = [...fullList];
+    if (type === "projects" && selectedProjCategory !== "all") {
+      filteredSubset = fullList.filter(p => p.categoryId === selectedProjCategory);
+    } else if (type === "media" && selectedMediaCategory !== "all") {
+      filteredSubset = fullList.filter(m => m.categoryId === selectedMediaCategory);
+    }
+
+    const subsetIndex = filteredSubset.findIndex(item => item.id === id);
+    if (subsetIndex === -1) return;
+
+    const targetSubsetIndex = direction === "up" ? subsetIndex - 1 : subsetIndex + 1;
+    if (targetSubsetIndex < 0 || targetSubsetIndex >= filteredSubset.length) return;
+
+    const currentItem = filteredSubset[subsetIndex];
+    const neighborItem = filteredSubset[targetSubsetIndex];
+
+    // Find their original indices in the full list
+    const originalIdxA = fullList.findIndex(item => item.id === currentItem.id);
+    const originalIdxB = fullList.findIndex(item => item.id === neighborItem.id);
+
+    if (originalIdxA === -1 || originalIdxB === -1) return;
+
+    // Swap them in the full list
+    fullList[originalIdxA] = neighborItem;
+    fullList[originalIdxB] = currentItem;
+
+    // Reassign sequential order numbers (0, 1, 2...) based on new indices in the full array
+    const updatedItems = fullList.map((item, idx) => ({
+      ...item,
+      order: idx,
+    }));
+
+    // Sort the list properly to update visual state correctly
+    let sortedItems: any[] = [];
+    if (type === "projects") sortedItems = sortProjects(updatedItems);
+    else if (type === "media") sortedItems = sortMedia(updatedItems);
+    else if (type === "achievements") sortedItems = sortAchievements(updatedItems);
+    else if (type === "skills") sortedItems = sortSkills(updatedItems);
+    else if (type === "community") sortedItems = sortCommunity(updatedItems);
+
+    setList(sortedItems);
+
+    try {
+      const res = await fetch("/api/admin/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          items: sortedItems.map((item) => ({ id: item.id, order: item.order })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error("Failed to persist order to database:", data.error);
+      }
+    } catch (err) {
+      console.error("Reorder save API error:", err);
+    }
+  };
+
   // Modal Edit States
   const [editingProjId, setEditingProjId] = useState<string | null>(null);
   const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
@@ -313,7 +459,7 @@ export default function AdminDashboardClient({
 
   // Asset Picker States
   const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
-  const [onSelectAsset, setOnSelectAsset] = useState<(url: string) => void>(() => () => {});
+  const [onSelectAsset, setOnSelectAsset] = useState<(url: string) => void>(() => () => { });
   const [galleryAssets, setGalleryAssets] = useState<{ url: string; inUse: boolean }[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
   const [hasMoreAssets, setHasMoreAssets] = useState(false);
@@ -326,14 +472,14 @@ export default function AdminDashboardClient({
       const limit = 12;
       const currentOffset = reset ? 0 : assetsOffset;
       const currentCursor = reset ? "" : (assetsCursor || "");
-      
+
       let url = `/api/admin/assets?limit=${limit}`;
       if (currentCursor) {
         url += `&nextCursor=${encodeURIComponent(currentCursor)}`;
       } else {
         url += `&offset=${currentOffset}`;
       }
-      
+
       const res = await fetch(url);
       const data = await res.json();
       if (res.ok && data.success) {
@@ -438,6 +584,7 @@ export default function AdminDashboardClient({
     setProjFeatured(false);
     setProjLinks([]);
     setProjCatId(categories[0]?.id || "");
+    setProjOrder(0);
   };
 
   const resetMediaForm = () => {
@@ -447,6 +594,7 @@ export default function AdminDashboardClient({
     setMediaDesc("");
     setMediaFeatured(false);
     setMediaCatId(categories.find(c => c.slug === "photography")?.id || "");
+    setMediaOrder(0);
   };
 
   const resetSkillForm = () => {
@@ -454,6 +602,7 @@ export default function AdminDashboardClient({
     setSkillLevel(80);
     setSkillCategory(customCategories[0] || "");
     setEditingSkillId(null);
+    setSkillOrder(0);
   };
 
   const resetAchForm = () => {
@@ -465,6 +614,7 @@ export default function AdminDashboardClient({
     setAchContent("");
     setAchLinks([]);
     setEditingAchId(null);
+    setAchOrder(0);
   };
 
   const resetCommForm = () => {
@@ -477,6 +627,7 @@ export default function AdminDashboardClient({
     setCommContent("");
     setCommLinks([]);
     setEditingCommId(null);
+    setCommOrder(0);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
@@ -596,6 +747,7 @@ export default function AdminDashboardClient({
           links: projLinks.length > 0 ? JSON.stringify(projLinks) : null,
           categoryId: projCatId,
           isFeatured: projFeatured,
+          order: projOrder,
         }),
       });
       const data = await res.json();
@@ -606,16 +758,16 @@ export default function AdminDashboardClient({
           ...data.data,
           category: catObj || { id: projCatId, name: "Uncategorized", slug: "uncat" },
         };
-        
+
         if (editingProjId) {
-          setProjects(projects.map(p => p.id === editingProjId ? updatedProj : p));
+          setProjects(sortProjects(projects.map(p => p.id === editingProjId ? updatedProj : p)));
           showNotification("Project updated successfully!");
           setEditingProjId(null);
         } else {
-          setProjects([updatedProj, ...projects]);
+          setProjects(sortProjects([updatedProj, ...projects]));
           showNotification("Project added successfully!");
         }
-        
+
         resetProjectForm();
         setIsProjModalOpen(false);
       } else {
@@ -662,6 +814,7 @@ export default function AdminDashboardClient({
           description: mediaDesc || null,
           categoryId: mediaCatId || null,
           isFeatured: mediaFeatured,
+          order: mediaOrder,
         }),
       });
       const data = await res.json();
@@ -671,13 +824,13 @@ export default function AdminDashboardClient({
           ...data.data,
           category: catObj || null,
         };
-        
+
         if (editingMediaId) {
-          setMedia(media.map(m => m.id === editingMediaId ? updatedMedia : m));
+          setMedia(sortMedia(media.map(m => m.id === editingMediaId ? updatedMedia : m)));
           showNotification("Media item updated successfully!");
           setEditingMediaId(null);
         } else {
-          setMedia([updatedMedia, ...media]);
+          setMedia(sortMedia([updatedMedia, ...media]));
           showNotification("Media item added successfully!");
         }
 
@@ -733,7 +886,7 @@ export default function AdminDashboardClient({
           body: JSON.stringify({ key: "about_photo", value: aboutPhoto }),
         }),
       ];
-      
+
       const results = await Promise.all(saveSettings);
       const allOk = results.every(res => res.ok);
       if (allOk) {
@@ -792,12 +945,12 @@ export default function AdminDashboardClient({
     const updated = [...customCategories];
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= updated.length) return;
-    
+
     // Swap
     const temp = updated[index];
     updated[index] = updated[targetIndex];
     updated[targetIndex] = temp;
-    
+
     handleSaveCategories(updated);
   };
 
@@ -813,15 +966,16 @@ export default function AdminDashboardClient({
           name: skillName,
           level: String(skillLevel),
           category: skillCategory,
+          order: skillOrder,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
         if (editingSkillId) {
-          setSkills(skills.map(s => s.id === editingSkillId ? data.data : s));
+          setSkills(sortSkills(skills.map(s => s.id === editingSkillId ? data.data : s)));
           showNotification("Skill updated successfully!");
         } else {
-          setSkills([data.data, ...skills]);
+          setSkills(sortSkills([data.data, ...skills]));
           showNotification("Skill added successfully!");
         }
         resetSkillForm();
@@ -876,15 +1030,16 @@ export default function AdminDashboardClient({
           image: achImage || null,
           content: achContent || null,
           links: achLinks.length > 0 ? JSON.stringify(achLinks) : null,
+          order: achOrder,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
         if (editingAchId) {
-          setAchievements(achievements.map(a => a.id === editingAchId ? data.data : a));
+          setAchievements(sortAchievements(achievements.map(a => a.id === editingAchId ? data.data : a)));
           showNotification("Achievement/Cert updated successfully!");
         } else {
-          setAchievements([data.data, ...achievements]);
+          setAchievements(sortAchievements([data.data, ...achievements]));
           showNotification("Achievement/Cert added successfully!");
         }
         resetAchForm();
@@ -942,15 +1097,16 @@ export default function AdminDashboardClient({
           image: commImage || null,
           content: commContent || null,
           links: commLinks.length > 0 ? JSON.stringify(commLinks) : null,
+          order: commOrder,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
         if (editingCommId) {
-          setCommunity(community.map(c => c.id === editingCommId ? data.data : c));
+          setCommunity(sortCommunity(community.map(c => c.id === editingCommId ? data.data : c)));
           showNotification("Community Activity updated successfully!");
         } else {
-          setCommunity([data.data, ...community]);
+          setCommunity(sortCommunity([data.data, ...community]));
           showNotification("Community Activity added successfully!");
         }
         resetCommForm();
@@ -1015,7 +1171,7 @@ export default function AdminDashboardClient({
 
       {/* Sidebar Drawer Backdrop (Mobile Only) */}
       {isSidebarOpen && (
-        <div 
+        <div
           onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-x-0 bottom-0 top-16 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
         />
@@ -1082,11 +1238,10 @@ export default function AdminDashboardClient({
                     setActiveTab(tab.id as any);
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
-                    isActive
-                      ? "bg-white/10 text-white"
-                      : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${isActive
+                    ? "bg-white/10 text-white"
+                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.name}
@@ -1193,7 +1348,22 @@ export default function AdminDashboardClient({
 
             {/* List of current projects */}
             <div className="glass-card rounded-3xl p-6 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-6">Current Projects ({projects.length})</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-lg font-bold text-white">Current Projects ({filteredProjects.length})</h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
+                  <select
+                    value={selectedProjCategory}
+                    onChange={(e) => setSelectedProjCategory(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#0c0c0c] border border-white/10 text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                  >
+                    <option value="all" className="bg-[#0f0f0f] text-white">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -1202,11 +1372,12 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Featured</th>
+                      <th className="py-3 px-4 text-center">Order</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {projects.map((p) => (
+                    {filteredProjects.map((p, idx) => (
                       <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="py-3 px-4">
                           <a
@@ -1232,9 +1403,32 @@ export default function AdminDashboardClient({
                             <span className="text-[10px] font-semibold bg-zinc-500/10 border border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
                           )}
                         </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("projects", p.id, "up")}
+                              disabled={idx === 0}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Naik"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs font-mono w-6 text-center">{p.order || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("projects", p.id, "down")}
+                              disabled={idx === filteredProjects.length - 1}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Turun"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-right space-x-2">
                           <button
-                             onClick={() => {
+                            onClick={() => {
                               setEditingProjId(p.id);
                               setProjTitle(p.title);
                               setProjDesc(p.description);
@@ -1244,6 +1438,7 @@ export default function AdminDashboardClient({
                               setProjDemo(p.demoUrl || "");
                               setProjGit(p.githubUrl || "");
                               setProjFeatured(p.isFeatured);
+                              setProjOrder(p.order || 0);
 
                               let linksArr = [];
                               if (p.links) {
@@ -1258,7 +1453,7 @@ export default function AdminDashboardClient({
                                 if (p.githubUrl) linksArr.push({ label: "Source Code", url: p.githubUrl, icon: "github" });
                               }
                               setProjLinks(linksArr);
-                              
+
                               setIsProjModalOpen(true);
                             }}
                             className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
@@ -1555,6 +1750,15 @@ export default function AdminDashboardClient({
                       ))}
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <input
+                      type="number" value={projOrder} onChange={e => setProjOrder(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
+                  </div>
                   <div className="flex items-center gap-3 pt-4">
                     <input
                       type="checkbox" id="projFeaturedEdit" checked={projFeatured} onChange={e => setProjFeatured(e.target.checked)}
@@ -1694,7 +1898,22 @@ export default function AdminDashboardClient({
 
             {/* Media list */}
             <div className="glass-card rounded-3xl p-6 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-6">Current Media Items ({media.length})</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-lg font-bold text-white">Current Media Items ({filteredMedia.length})</h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
+                  <select
+                    value={selectedMediaCategory}
+                    onChange={(e) => setSelectedMediaCategory(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#0c0c0c] border border-white/10 text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                  >
+                    <option value="all" className="bg-[#0f0f0f] text-white">All Categories</option>
+                    {categories.filter(c => ["photography", "video-editing", "graphic-design"].includes(c.slug)).map((cat) => (
+                      <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -1704,11 +1923,12 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">URL Preview</th>
                       <th className="py-3 px-4">Featured</th>
+                      <th className="py-3 px-4 text-center">Order</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {media.map((m) => {
+                    {filteredMedia.map((m, idx) => {
                       const [vUrl, cUrl] = m.url.split("||");
                       const embedInfo = parseEmbedUrl(vUrl);
                       const isVideo = m.category?.slug === "video-editing" || embedInfo.type === "youtube" || embedInfo.type === "vimeo" || embedInfo.type === "instagram" || embedInfo.type === "tiktok";
@@ -1765,6 +1985,29 @@ export default function AdminDashboardClient({
                               <span className="text-[10px] font-semibold bg-zinc-500/10 border border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
                             )}
                           </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveItem("media", m.id, "up")}
+                                disabled={idx === 0}
+                                className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                title="Geser Naik"
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+                              <span className="text-xs font-mono w-6 text-center">{m.order || 0}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveItem("media", m.id, "down")}
+                                disabled={idx === filteredMedia.length - 1}
+                                className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                title="Geser Turun"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
                           <td className="py-3 px-4 text-right space-x-2">
                             <button
                               onClick={() => {
@@ -1775,6 +2018,7 @@ export default function AdminDashboardClient({
                                 setMediaDesc(m.description || "");
                                 setMediaCatId(m.categoryId || "");
                                 setMediaFeatured(m.isFeatured);
+                                setMediaOrder(m.order || 0);
                                 setIsMediaModalOpen(true);
                               }}
                               className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
@@ -1782,17 +2026,17 @@ export default function AdminDashboardClient({
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                          <button
-                            onClick={() => handleDeleteMedia(m.id)}
-                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            <button
+                              onClick={() => handleDeleteMedia(m.id)}
+                              className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1919,6 +2163,15 @@ export default function AdminDashboardClient({
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <input
+                      type="number" value={mediaOrder} onChange={e => setMediaOrder(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
+                  </div>
                   <div className="flex items-center gap-3 pt-4">
                     <input
                       type="checkbox" id="mediaFeaturedEdit" checked={mediaFeatured} onChange={e => setMediaFeatured(e.target.checked)}
@@ -1965,7 +2218,7 @@ export default function AdminDashboardClient({
               <div className="h-32 sm:h-40 bg-gradient-to-r from-violet-900/40 via-purple-900/30 to-fuchsia-900/40 relative border-b border-white/5">
                 <div className="absolute inset-0 bg-grid-white/[0.02]" />
               </div>
-              
+
               {/* Profile details */}
               <div className="px-6 pb-8 sm:px-8 relative flex flex-col sm:flex-row sm:items-end gap-6">
                 {/* Profile Photo as Avatar */}
@@ -1976,7 +2229,7 @@ export default function AdminDashboardClient({
                     className="object-cover w-full h-full"
                   />
                 </div>
-                
+
                 {/* Name & Bio section */}
                 <div className="flex-1 space-y-2 pt-2 sm:pt-0">
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{aboutName}</h2>
@@ -2106,7 +2359,7 @@ export default function AdminDashboardClient({
                 Add Skill
               </button>
             </div>
- 
+
             {/* Collapsible Categories Ordering */}
             <div className="glass-card rounded-3xl border border-white/5 overflow-hidden">
               <button
@@ -2161,7 +2414,7 @@ export default function AdminDashboardClient({
                 </div>
               )}
             </div>
- 
+
             {/* Skills Table List */}
             <div className="glass-card rounded-3xl p-6 border border-white/5">
               <h2 className="text-lg font-bold text-white mb-6">Current Skills ({skills.length})</h2>
@@ -2172,11 +2425,12 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4">Name</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Rating Visual</th>
+                      <th className="py-3 px-4 text-center">Order</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {skills.map((s) => (
+                    {skills.map((s, idx) => (
                       <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="py-3 px-4 font-semibold text-white">{s.name}</td>
                         <td className="py-3 px-4 text-zinc-400">{s.category}</td>
@@ -2188,6 +2442,29 @@ export default function AdminDashboardClient({
                             <span className="text-xs text-zinc-400 font-semibold">{s.level || "50"}%</span>
                           </div>
                         </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("skills", s.id, "up")}
+                              disabled={idx === 0}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Naik"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs font-mono w-6 text-center">{s.order || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("skills", s.id, "down")}
+                              disabled={idx === skills.length - 1}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Turun"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-right space-x-2">
                           <button
                             onClick={() => {
@@ -2195,6 +2472,7 @@ export default function AdminDashboardClient({
                               setSkillName(s.name);
                               setSkillLevel(Number(s.level) || 80);
                               setSkillCategory(s.category);
+                              setSkillOrder(s.order || 0);
                               setIsSkillModalOpen(true);
                             }}
                             className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
@@ -2309,6 +2587,16 @@ export default function AdminDashboardClient({
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <input
+                      type="number" value={skillOrder} onChange={e => setSkillOrder(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
+                  </div>
+
                   <button
                     type="submit" disabled={loading}
                     className="w-full mt-4 py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
@@ -2353,16 +2641,40 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Issuer</th>
                       <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4 text-center">Order</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {achievements.map((a) => (
+                    {achievements.map((a, idx) => (
                       <tr key={a.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="py-3 px-4 font-semibold text-white">{a.title}</td>
                         <td className="py-3 px-4 text-zinc-400">{a.issuer}</td>
                         <td className="py-3 px-4 text-zinc-500">
                           {a.date ? new Date(a.date).toLocaleDateString("id-ID", { year: "numeric", month: "short" }) : "N/A"}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("achievements", a.id, "up")}
+                              disabled={idx === 0}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Naik"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs font-mono w-6 text-center">{a.order || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("achievements", a.id, "down")}
+                              disabled={idx === achievements.length - 1}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Turun"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-right space-x-2">
                           <button
@@ -2374,6 +2686,7 @@ export default function AdminDashboardClient({
                               setAchDesc(a.description || "");
                               setAchImage(a.image || "");
                               setAchContent(a.content || "");
+                              setAchOrder(a.order || 0);
                               let parsedLinks = [];
                               if (a.links) {
                                 try {
@@ -2450,7 +2763,15 @@ export default function AdminDashboardClient({
                       />
                     </div>
                   </div>
-
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <input
+                      type="number" value={achOrder} onChange={e => setAchOrder(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
+                  </div>
                   {/* Certificate Image Field with file upload selector */}
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Certificate Image / Photo (Optional)</label>
@@ -2824,16 +3145,40 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Organization</th>
                       <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4 text-center">Order</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
-                    {community.map((c) => (
+                    {community.map((c, idx) => (
                       <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="py-3 px-4 font-semibold text-white">{c.title}</td>
                         <td className="py-3 px-4 text-zinc-400">{c.role}</td>
                         <td className="py-3 px-4 text-zinc-400">{c.organization}</td>
                         <td className="py-3 px-4 text-zinc-500">{c.dateRange}</td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("community", c.id, "up")}
+                              disabled={idx === 0}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Naik"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs font-mono w-6 text-center">{c.order || 0}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveItem("community", c.id, "down")}
+                              disabled={idx === community.length - 1}
+                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Geser Turun"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-right space-x-2">
                           <button
                             onClick={() => {
@@ -2845,6 +3190,7 @@ export default function AdminDashboardClient({
                               setCommDesc(c.description || "");
                               setCommImage(c.image || "");
                               setCommContent(c.content || "");
+                              setCommOrder(c.order || 0);
                               let parsedLinks = [];
                               if (c.links) {
                                 try {
@@ -2919,6 +3265,15 @@ export default function AdminDashboardClient({
                       placeholder="2023 - 2024 or 2024"
                       className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <input
+                      type="number" value={commOrder} onChange={e => setCommOrder(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
                   {/* Image field */}
                   <div>
@@ -3273,7 +3628,7 @@ export default function AdminDashboardClient({
 
             <form onSubmit={handleSaveContactLinks} className="glass-card rounded-3xl p-6 border border-white/5 space-y-6">
               <h2 className="text-lg font-bold text-white mb-4">Current Contact Links ({contactLinks.length})</h2>
-              
+
               {contactLinks.length === 0 ? (
                 <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl">
                   <p className="text-zinc-500 text-sm font-light">No contact or social links added yet. Click "Add Contact Link" to start.</p>
@@ -3469,7 +3824,7 @@ export default function AdminDashboardClient({
                     </div>
                   ))}
                 </div>
-                
+
                 {hasMoreAssets && (
                   <div className="pt-2 flex justify-center">
                     <button
@@ -3592,17 +3947,17 @@ function AdminEditModal({ isOpen, onClose, title, children, maxWidthClass = "max
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300" 
-        onClick={onClose} 
+      <div
+        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300"
+        onClick={onClose}
       />
       {/* Modal Content */}
       <div className={`relative glass-modal rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border border-white/10 shadow-2xl transition-all duration-300 transform scale-100 flex flex-col gap-6`}>
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
           <h2 className="text-xl font-bold text-white">{title}</h2>
-          <button 
+          <button
             type="button"
-            onClick={onClose} 
+            onClick={onClose}
             className="text-zinc-400 hover:text-white p-2 rounded-full bg-white/5 border border-white/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -3635,7 +3990,7 @@ function resizeAndCompressImage(
       resolve(file);
       return;
     }
-    
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {

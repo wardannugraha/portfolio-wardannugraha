@@ -7,7 +7,10 @@ export async function GET() {
   try {
     const projects = await prisma.project.findMany({
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { order: "asc" },
+        { createdAt: "desc" }
+      ],
     });
     return NextResponse.json({ success: true, data: projects });
   } catch (error) {
@@ -22,11 +25,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, title, description, content, featuredImage, demoUrl, githubUrl, links, categoryId, isFeatured } = await request.json();
+    const { id, title, description, content, featuredImage, demoUrl, githubUrl, links, categoryId, isFeatured, order } = await request.json();
 
     if (!title || !description || !categoryId || !featuredImage) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
+
+    const parsedOrder = typeof order === 'number' ? order : (order ? Number(order) : 0);
 
     let project;
     if (id) {
@@ -51,6 +56,7 @@ export async function POST(request: Request) {
           links,
           categoryId,
           isFeatured: !!isFeatured,
+          order: parsedOrder,
         },
       });
     } else {
@@ -65,6 +71,7 @@ export async function POST(request: Request) {
           links,
           categoryId,
           isFeatured: !!isFeatured,
+          order: parsedOrder,
         },
       });
     }
