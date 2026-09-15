@@ -66,12 +66,12 @@ export default function TiltCard({ src, alt }: TiltCardProps) {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative aspect-square w-full rounded-3xl bg-zinc-900 border border-white/5 overflow-hidden shadow-2xl flex items-center justify-center preserve-3d"
+      className="relative aspect-square w-full rounded-3xl bg-zinc-200 dark:bg-zinc-900 border border-zinc-300/80 dark:border-white/5 overflow-hidden shadow-xl dark:shadow-2xl flex items-center justify-center preserve-3d"
       style={{
         transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
         boxShadow: isHovering
           ? "0 25px 50px -12px rgba(139, 92, 246, 0.25), 0 0 30px 1px rgba(139, 92, 246, 0.1)"
-          : "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)",
+          : undefined,
         transition: isHovering
           ? "transform 0.05s ease-out, box-shadow 0.3s ease"
           : "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1)",

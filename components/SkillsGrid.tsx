@@ -78,7 +78,7 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
   return (
     <div className="space-y-8 w-full">
       {/* Tab Selectors */}
-      <div className="flex flex-wrap gap-4 border-b border-white/5 pb-4">
+      <div className="flex flex-wrap gap-4 border-b border-zinc-200 dark:border-white/5 pb-4">
         {categories.map((catName) => {
           const Icon = getCategoryIcon(catName);
           const isActive = activeTab.toLowerCase() === catName.toLowerCase();
@@ -87,7 +87,9 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
               key={catName}
               onClick={() => setActiveTab(catName)}
               className={`flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-wider uppercase pb-2 transition-all relative cursor-pointer ${
-                isActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                isActive 
+                  ? "text-zinc-950 dark:text-white" 
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -95,7 +97,7 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
               {isActive && (
                 <motion.div
                   layoutId="activeSkillTabLine"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 dark:bg-violet-500"
                 />
               )}
             </button>
@@ -115,20 +117,20 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
-                className="glass-card p-3.5 sm:p-5 rounded-xl sm:rounded-2xl flex flex-col justify-between border border-white/5 hover:border-white/15"
+                className="glass-card p-3.5 sm:p-5 rounded-xl sm:rounded-2xl flex flex-col justify-between border border-zinc-200/80 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/15"
               >
                 <div className="flex justify-between items-start gap-2">
-                  <h4 className="font-semibold text-white text-xs sm:text-base">{skill.name}</h4>
-                  <span className="text-violet-400 text-[10px] sm:text-sm font-semibold">{percentage}%</span>
+                  <h4 className="font-semibold text-zinc-900 dark:text-white text-xs sm:text-base">{skill.name}</h4>
+                  <span className="text-violet-600 dark:text-violet-400 text-[10px] sm:text-sm font-semibold">{percentage}%</span>
                 </div>
 
-                {/* Highly visual glowing progress bar rating */}
-                <div className="w-full bg-white/5 h-1 sm:h-1.5 rounded-full overflow-hidden mt-2.5 sm:mt-4 relative">
+                {/* Glowing progress bar rating */}
+                <div className="w-full bg-zinc-200 dark:bg-white/5 h-1 sm:h-1.5 rounded-full overflow-hidden mt-2.5 sm:mt-4 relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="bg-gradient-to-r from-violet-500 to-blue-500 h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.5)]"
+                    className="bg-gradient-to-r from-violet-600 to-blue-600 dark:from-violet-500 dark:to-blue-500 h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] dark:shadow-[0_0_8px_rgba(139,92,246,0.5)]"
                   />
                 </div>
               </motion.div>

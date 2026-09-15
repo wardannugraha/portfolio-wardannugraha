@@ -82,7 +82,7 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Smoothly scroll back to the #work section header so the user doesn't stay stuck at the bottom
+    // Smoothly scroll back to the #work section header
     const element = document.getElementById("work");
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -92,7 +92,7 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
   return (
     <div className="space-y-12">
       {/* Category Pills Header */}
-      <div className="flex flex-wrap justify-center gap-3 w-full">
+      <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3 w-full">
         {filterCategories.map((cat) => {
           const Icon = cat.icon;
           const isSelected = selectedCategory === cat.slug;
@@ -100,16 +100,24 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
             <button
               key={cat.slug}
               onClick={() => setSelectedCategory(cat.slug)}
-              className="relative px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors duration-300 flex items-center gap-2 cursor-pointer outline-none border border-white/5"
+              className={`relative px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors duration-300 flex items-center gap-2 cursor-pointer outline-none border ${
+                isSelected 
+                  ? "border-transparent" 
+                  : "border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-transparent"
+              }`}
             >
               {isSelected && (
                 <motion.div
                   layoutId="activeCategoryIndicator"
-                  className="absolute inset-0 bg-white rounded-full z-0"
+                  className="absolute inset-0 bg-zinc-900 dark:bg-white rounded-full z-0 shadow-sm"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
-              <span className={`relative z-10 flex items-center gap-2 ${isSelected ? "text-black" : "text-zinc-400 hover:text-white"}`}>
+              <span className={`relative z-10 flex items-center gap-2 ${
+                isSelected 
+                  ? "text-white dark:text-black font-bold" 
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+              }`}>
                 <Icon className="w-3.5 h-3.5" />
                 {cat.name}
               </span>
@@ -139,11 +147,11 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
                 transition={{ duration: 0.25 }}
-                className="glass-card rounded-2xl sm:rounded-3xl p-3 sm:p-6 group cursor-pointer relative overflow-hidden flex flex-col justify-between"
+                className="glass-card rounded-2xl sm:rounded-3xl p-3 sm:p-6 group cursor-pointer relative overflow-hidden flex flex-col justify-between border border-zinc-200/80 dark:border-white/5"
               >
                 <Link href={`/projects/${project.id}`} className="block md:cursor-none flex-1">
                   {/* Visual Image Preview */}
-                  <div className="aspect-video w-full rounded-xl sm:rounded-2xl bg-zinc-950 border border-white/5 mb-3 sm:mb-6 flex items-center justify-center relative overflow-hidden">
+                  <div className="aspect-video w-full rounded-xl sm:rounded-2xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 mb-3 sm:mb-6 flex items-center justify-center relative overflow-hidden">
                     <Image
                       src={project.featuredImage}
                       alt={project.title}
@@ -157,20 +165,20 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                   {/* Details Footer */}
                   <div className="flex items-center justify-between">
                     <div className="space-y-1 flex-1 min-w-0">
-                      <span className="text-[9px] sm:text-xs font-semibold text-violet-400 uppercase tracking-wider">
+                      <span className="text-[9px] sm:text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider">
                         {project.category.name}
                       </span>
-                      <h3 className="text-xs sm:text-base md:text-xl font-bold text-white group-hover:text-violet-300 transition-colors">
+                      <h3 className="text-xs sm:text-base md:text-xl font-bold text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">
                         {project.title}
                       </h3>
                       <div className="hidden sm:block mt-1">
-                        <p className="text-zinc-400 text-sm font-light line-clamp-2 min-h-[2.5rem]">
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm font-light line-clamp-2 min-h-[2.5rem]">
                           {project.description}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="hidden sm:flex w-10 h-10 rounded-full border border-white/10 items-center justify-center group-hover:bg-white group-hover:text-black transition-all flex-shrink-0 ml-4">
+                    <div className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-200 dark:border-white/10 items-center justify-center text-zinc-600 dark:text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-all flex-shrink-0 ml-4">
                       <ArrowUpRight className="w-4 h-4" />
                     </div>
                   </div>
@@ -211,7 +219,7 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                   if (projectLinks.length === 0) return null;
 
                   return (
-                    <div className="hidden sm:flex flex-wrap gap-x-4 gap-y-2 mt-6 pt-4 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
+                    <div className="hidden sm:flex flex-wrap gap-x-4 gap-y-2 mt-6 pt-4 border-t border-zinc-200 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 relative z-10">
                       {projectLinks.map((link, idx) => {
                         const isPrimary = idx === 0;
                         return (
@@ -222,8 +230,8 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                             rel="noopener noreferrer"
                             className={`text-xs font-semibold inline-flex items-center gap-1.5 md:cursor-none transition-colors ${
                               isPrimary
-                                ? "text-white hover:text-violet-300"
-                                : "text-zinc-400 hover:text-white"
+                                ? "text-zinc-950 dark:text-white hover:text-violet-600 dark:hover:text-violet-300"
+                                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
                             }`}
                           >
                             {getLinkIcon(link.icon)}
@@ -243,18 +251,18 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-6 pt-8 border-t border-white/5">
+        <div className="flex items-center justify-center gap-6 pt-8 border-t border-zinc-200 dark:border-white/5">
           <button
             type="button"
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
-            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-400 disabled:hover:border-white/10 transition-all cursor-pointer"
+            className="w-10 h-10 rounded-full border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:border-zinc-400 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-600 disabled:hover:border-zinc-200 dark:disabled:hover:text-zinc-400 dark:disabled:hover:border-white/10 transition-all cursor-pointer"
             title="Previous Page"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           
-          <span className="text-xs font-semibold tracking-widest text-zinc-400 uppercase select-none">
+          <span className="text-xs font-semibold tracking-widest text-zinc-500 dark:text-zinc-400 uppercase select-none">
             Page {currentPage} of {totalPages}
           </span>
           
@@ -262,7 +270,7 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
             type="button"
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
-            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-400 disabled:hover:border-white/10 transition-all cursor-pointer"
+            className="w-10 h-10 rounded-full border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:border-zinc-400 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-600 disabled:hover:border-zinc-200 dark:disabled:hover:text-zinc-400 dark:disabled:hover:border-white/10 transition-all cursor-pointer"
             title="Next Page"
           >
             <ChevronRight className="w-5 h-5" />

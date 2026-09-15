@@ -295,21 +295,21 @@ export default async function Home() {
   const displayAboutMe = aboutMeSetting?.value || defaultAboutMe;
 
   return (
-    <div className="flex flex-col min-h-screen bg-grid-pattern bg-[#030303] relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-400">
       {/* Hero Section */}
       <Hero />
 
       {/* Work Section (Focus: Technology & Creative Core Business) */}
-      <section id="work" className="pt-24 pb-16 border-t border-white/5 relative bg-transparent overflow-hidden">
+      <section id="work" className="pt-24 pb-16 border-t border-zinc-200/80 dark:border-white/5 relative bg-transparent overflow-hidden">
         {/* Soft background glow */}
-        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-violet-600/[0.03] rounded-full blur-[140px] pointer-events-none -z-10" />
+        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-violet-600/[0.04] dark:bg-violet-600/[0.03] rounded-full blur-[140px] pointer-events-none -z-10" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-16">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-violet-400">Portfolio</span>
-              <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-white">Featured Works</h2>
+              <span className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Portfolio</span>
+              <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-zinc-950 dark:text-white">Featured Works</h2>
             </div>
-            <p className="text-zinc-400 max-w-md text-sm sm:text-base font-light">
+            <p className="text-zinc-600 dark:text-zinc-400 max-w-md text-sm sm:text-base font-light">
               A curated selection of core technology projects and creative design highlights.
             </p>
           </div>
@@ -322,23 +322,23 @@ export default async function Home() {
       <PhotographyShowcase initialMedia={displayMedia} />
 
       {/* About Section (Focus: Synthesized Identity & Achievements) */}
-      <section id="about" className="py-24 border-t border-white/5 relative bg-transparent overflow-hidden">
+      <section id="about" className="py-24 border-t border-zinc-200/80 dark:border-white/5 relative bg-transparent overflow-hidden">
         {/* Soft background glow */}
-        <div className="absolute top-1/4 left-10 w-[350px] h-[350px] bg-amber-500/[0.03] rounded-full blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute top-1/4 left-10 w-[350px] h-[350px] bg-amber-500/[0.04] dark:bg-amber-500/[0.03] rounded-full blur-[120px] pointer-events-none -z-10" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-12 gap-12 items-start">
             <div className="md:col-span-5">
               <TiltCard src={displayAboutPhoto} alt={displayAboutName} />
             </div>
             <div className="md:col-span-7 flex flex-col gap-6">
-              <span className="text-xs font-semibold uppercase tracking-wider text-violet-400">Identity Story</span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white">{displayAboutName}</h2>
-              <p className="text-zinc-300 font-light leading-relaxed whitespace-pre-line">
+              <span className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Identity Story</span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-zinc-950 dark:text-white">{displayAboutName}</h2>
+              <p className="text-zinc-700 dark:text-zinc-300 font-light leading-relaxed whitespace-pre-line">
                 {displayAboutMe}
               </p>
               
               <div className="space-y-4 w-full">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Core Expertise</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Core Expertise</h4>
                 <SkillsGrid initialSkills={displaySkills} categoryOrder={parsedSkillCategories} />
               </div>
             </div>
@@ -347,16 +347,16 @@ export default async function Home() {
       </section>
 
       {/* Credentials Section (Focus: Learner Authority Builder) */}
-      <section id="credentials" className="py-24 border-t border-white/5 relative bg-transparent overflow-hidden">
+      <section id="credentials" className="py-24 border-t border-zinc-200/80 dark:border-white/5 relative bg-transparent overflow-hidden">
         {/* Soft background glow */}
-        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-blue-500/[0.03] rounded-full blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-blue-500/[0.04] dark:bg-blue-500/[0.03] rounded-full blur-[120px] pointer-events-none -z-10" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-16">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Education & Certs</span>
-              <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-white">Academic & Professional Credentials</h2>
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Education & Certs</span>
+              <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-zinc-950 dark:text-white">Academic & Professional Credentials</h2>
             </div>
-            <p className="text-zinc-400 max-w-md text-sm sm:text-base font-light">
+            <p className="text-zinc-600 dark:text-zinc-400 max-w-md text-sm sm:text-base font-light">
               Technical verifications, credentials, and certifications validating domain expertise.
             </p>
           </div>
@@ -366,14 +366,14 @@ export default async function Home() {
               <Link
                 key={ach.id}
                 href={`/credentials/${ach.id}`}
-                className="glass-card p-3 sm:p-6 rounded-xl sm:rounded-2xl flex flex-col justify-between h-36 sm:h-48 hover:border-amber-500/30 hover:scale-[1.02] transition-all duration-300 group md:cursor-none relative overflow-hidden"
+                className="glass-card p-3 sm:p-6 rounded-xl sm:rounded-2xl flex flex-col justify-between h-36 sm:h-48 hover:border-amber-500/40 hover:scale-[1.02] transition-all duration-300 group md:cursor-none relative overflow-hidden"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-[9px] sm:text-xs font-medium text-amber-400">Certification</span>
-                    <ArrowUpRight className="hidden sm:block w-4 h-4 text-zinc-500 group-hover:text-amber-400 transition-colors duration-300 mt-0.5 flex-shrink-0" />
+                    <span className="text-[9px] sm:text-xs font-medium text-amber-600 dark:text-amber-400">Certification</span>
+                    <ArrowUpRight className="hidden sm:block w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors duration-300 mt-0.5 flex-shrink-0" />
                   </div>
-                  <h3 className="text-xs sm:text-lg font-semibold text-white mt-1 sm:mt-2 leading-tight group-hover:text-amber-300 transition-colors duration-300 line-clamp-2">{ach.title}</h3>
+                  <h3 className="text-xs sm:text-lg font-semibold text-zinc-900 dark:text-white mt-1 sm:mt-2 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors duration-300 line-clamp-2">{ach.title}</h3>
                   <div className="hidden sm:block mt-1">
                     <p className="text-zinc-500 text-xs font-light line-clamp-2">
                       {ach.description}
@@ -383,7 +383,7 @@ export default async function Home() {
                 <div className="flex justify-between items-center mt-2 sm:mt-4 gap-2">
                   <span className="text-[9px] sm:text-xs text-zinc-500 truncate max-w-[60%]">{ach.issuer}</span>
                   {ach.date && (
-                    <span className="text-[8px] sm:text-[10px] text-zinc-600 bg-white/5 border border-white/5 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0">
+                    <span className="text-[8px] sm:text-[10px] text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0">
                       {new Date(ach.date).toLocaleDateString("id-ID", { year: "numeric", month: "short" })}
                     </span>
                   )}
@@ -398,10 +398,10 @@ export default async function Home() {
       <CommunityImpact initialActivities={displayCommunity.slice(0, 4)} />
 
       {/* Contact Section / Footer */}
-      <footer id="contact" className="py-16 border-t border-white/5 bg-transparent">
+      <footer id="contact" className="py-16 border-t border-zinc-200/80 dark:border-white/5 bg-transparent">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center gap-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Let&apos;s Build Something Beautiful Together</h2>
-          <p className="text-zinc-400 max-w-md text-sm font-light">
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Let&apos;s Build Something Beautiful Together</h2>
+          <p className="text-zinc-600 dark:text-zinc-400 max-w-md text-sm font-light">
             Open for freelance opportunities, full-time roles, or collaborating on digital media and web products.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-4">
@@ -411,24 +411,24 @@ export default async function Home() {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/5 hover:border-violet-500/30 transition-all duration-300 flex items-center gap-3 md:cursor-none shadow-lg group hover:scale-[1.03]"
+                className="px-6 py-4 bg-white/80 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-zinc-900 dark:text-white rounded-2xl border border-zinc-200 dark:border-white/5 hover:border-violet-500/40 transition-all duration-300 flex items-center gap-3 md:cursor-none shadow-sm dark:shadow-lg group hover:scale-[1.03]"
               >
-                <div className="p-2 rounded-xl bg-white/5 text-violet-400 group-hover:bg-violet-500 group-hover:text-black transition-colors duration-300">
+                <div className="p-2 rounded-xl bg-violet-50 dark:bg-white/5 text-violet-600 dark:text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-colors duration-300">
                   {getContactIcon(link.icon)}
                 </div>
                 <div className="text-left">
-                  <span className="text-[10px] text-zinc-500 block font-semibold uppercase tracking-wider">
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500 block font-semibold uppercase tracking-wider">
                     {link.username ? link.label : "Get in touch via"}
                   </span>
-                  <span className="text-sm font-bold block">
+                  <span className="text-sm font-bold block text-zinc-900 dark:text-white">
                     {link.username ? link.username : link.label}
                   </span>
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors ml-2 self-start mt-0.5" />
+                <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors ml-2 self-start mt-0.5" />
               </a>
             ))}
           </div>
-          <span className="text-xs text-zinc-600 mt-12">
+          <span className="text-xs text-zinc-500 dark:text-zinc-600 mt-12">
             &copy; {new Date().getFullYear()} Wardan Nugraha Ahmad. All rights reserved.
           </span>
         </div>

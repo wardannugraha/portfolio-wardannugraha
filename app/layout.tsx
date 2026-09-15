@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import CursorGlow from "@/components/CursorGlow";
 import CustomCursor from "@/components/CustomCursor";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,15 +29,40 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-[#030303] text-zinc-100 font-sans antialiased relative">
-        <CursorGlow />
-        <CustomCursor />
-        <Navbar />
-        <main className="flex-grow flex flex-col">
-          {children}
-        </main>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var storedTheme = localStorage.getItem('theme');
+                  if (storedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 font-sans antialiased relative transition-colors duration-400">
+        <ThemeProvider>
+          <CursorGlow />
+          <CustomCursor />
+          <Navbar />
+          <main className="flex-grow flex flex-col">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

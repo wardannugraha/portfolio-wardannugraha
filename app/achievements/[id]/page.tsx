@@ -24,17 +24,17 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
 
   if (!activity) {
     return (
-      <div className="min-h-screen bg-[#030303] text-zinc-100 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 text-center transition-colors duration-400">
         <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-6">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white mb-2">Activity Not Found</h1>
-        <p className="text-zinc-500 text-sm max-w-sm mb-8 font-light">
+        <h1 className="text-3xl font-extrabold text-zinc-950 dark:text-white mb-2">Activity Not Found</h1>
+        <p className="text-zinc-600 dark:text-zinc-400 text-sm max-w-sm mb-8 font-light">
           The achievement or organization activity you are looking for does not exist or has been removed.
         </p>
         <Link 
           href="/" 
-          className="px-6 py-3 bg-white text-zinc-950 rounded-xl text-sm font-semibold transition-colors hover:bg-zinc-200"
+          className="px-6 py-3 bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 rounded-xl text-sm font-semibold transition-colors hover:bg-zinc-800 dark:hover:bg-zinc-200"
         >
           Back to Home
         </Link>
@@ -54,7 +54,7 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
   }
 
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 pb-24 pt-28 relative overflow-hidden">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 pb-24 pt-28 relative overflow-hidden transition-colors duration-400">
       {/* Background radial glow with emerald tint */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-emerald-500/5 via-emerald-600/0 to-transparent blur-[120px] pointer-events-none -z-10" />
 
@@ -63,13 +63,13 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
         <div className="flex items-center justify-between">
           <Link
             href="/#achievements"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-semibold group/back md:cursor-none"
+            className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors text-sm font-semibold group/back md:cursor-none"
           >
             <ArrowLeft className="w-4 h-4 group-hover/back:-translate-x-0.5 transition-transform" />
             Back to Achievements
           </Link>
           
-          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
+          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
             <Award className="w-3.5 h-3.5" />
             Honor & Activity
           </span>
@@ -77,20 +77,20 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
 
         {/* Header Block */}
         <div className="space-y-4">
-          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
             {activity.role}
           </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-zinc-950 dark:text-white tracking-tight leading-tight">
             {activity.title}
           </h1>
-          <p className="text-zinc-400 text-base sm:text-lg font-light leading-relaxed">
+          <p className="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg font-light leading-relaxed">
             {activity.description}
           </p>
         </div>
 
         {/* Featured Image (If exists) */}
         {activity.image && (
-          <div className="rounded-3xl overflow-hidden border border-white/5 bg-zinc-950 relative aspect-video w-full shadow-2xl">
+          <div className="rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950 relative aspect-video w-full shadow-lg dark:shadow-2xl">
             <img
               src={activity.image}
               alt={activity.title}
@@ -103,7 +103,7 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-4">
           {/* Main Content */}
           <div className="md:col-span-2 space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-white/5 pb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-200 dark:border-white/5 pb-2">
               Activity Details & Background
             </h2>
             
@@ -111,7 +111,7 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
               {activity.content ? (
                 parseMarkdown(activity.content)
               ) : (
-                <p className="text-zinc-400 text-sm sm:text-base font-light leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base font-light leading-relaxed">
                   No detailed description has been written for this activity yet. Please check the links on the side for details.
                 </p>
               )}
@@ -120,26 +120,26 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
 
           {/* Sidebar / Links */}
           <div className="space-y-6">
-            <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-6 sticky top-28 shadow-xl">
+            <div className="glass-card rounded-2xl p-6 border border-zinc-200/80 dark:border-white/5 space-y-6 sticky top-28 shadow-sm dark:shadow-xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-4 border-b border-white/5 pb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-4 border-b border-zinc-200 dark:border-white/5 pb-2">
                   Activity Info
                 </h3>
                 <div className="space-y-4 text-xs sm:text-sm">
                   <div>
                     <span className="text-zinc-500 block text-[10px] font-semibold uppercase tracking-wider">Role</span>
-                    <span className="text-zinc-300 font-medium mt-1 block">{activity.role}</span>
+                    <span className="text-zinc-800 dark:text-zinc-300 font-medium mt-1 block">{activity.role}</span>
                   </div>
                   <div>
                     <span className="text-zinc-500 block text-[10px] font-semibold uppercase tracking-wider">Organization</span>
-                    <span className="text-zinc-300 font-medium mt-1 block flex items-center gap-1.5">
+                    <span className="text-zinc-800 dark:text-zinc-300 font-medium mt-1 block flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-zinc-500" />
                       {activity.organization}
                     </span>
                   </div>
                   <div>
                     <span className="text-zinc-500 block text-[10px] font-semibold uppercase tracking-wider">Time Period</span>
-                    <span className="text-zinc-300 font-medium mt-1 block flex items-center gap-1.5">
+                    <span className="text-zinc-800 dark:text-zinc-300 font-medium mt-1 block flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-zinc-500" />
                       {activity.dateRange}
                     </span>
@@ -148,7 +148,7 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
               </div>
 
               {activityLinks.length > 0 && (
-                <div className="space-y-3 pt-6 border-t border-white/5">
+                <div className="space-y-3 pt-6 border-t border-zinc-200 dark:border-white/5">
                   {activityLinks.map((link, index) => {
                     const isPrimary = index === 0;
                     return (
@@ -159,8 +159,8 @@ export default async function AchievementDetailPage({ params }: AchievementDetai
                         rel="noopener noreferrer"
                         className={
                           isPrimary
-                            ? "w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 md:cursor-none shadow-md"
-                            : "w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/5 font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 md:cursor-none"
+                            ? "w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 md:cursor-none shadow-md"
+                            : "w-full py-3 bg-white/80 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 text-zinc-900 dark:text-white rounded-xl border border-zinc-200 dark:border-white/5 font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 md:cursor-none"
                         }
                       >
                         {getLinkIcon(link.icon)}
@@ -185,7 +185,7 @@ function parseInline(text: string): React.ReactNode[] {
 
   return matches.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+      return <strong key={i} className="font-semibold text-zinc-950 dark:text-white">{part.slice(2, -2)}</strong>;
     } else if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
       const labelEnd = part.indexOf("]");
       const urlStart = part.indexOf("(") + 1;
@@ -197,7 +197,7 @@ function parseInline(text: string): React.ReactNode[] {
           href={url} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="text-emerald-400 hover:text-emerald-300 underline font-medium inline-flex items-center gap-0.5 md:cursor-none"
+          className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 underline font-medium inline-flex items-center gap-0.5 md:cursor-none"
         >
           {label} <span className="text-[10px]">&#8599;</span>
         </a>
@@ -218,7 +218,7 @@ function parseMarkdown(text: string | null) {
   const pushList = () => {
     if (listItems.length > 0) {
       elements.push(
-        <ul key={`list-${elements.length}`} className="list-disc pl-6 my-4 space-y-2 text-zinc-300 text-sm sm:text-base">
+        <ul key={`list-${elements.length}`} className="list-disc pl-6 my-4 space-y-2 text-zinc-700 dark:text-zinc-300 text-sm sm:text-base">
           {[...listItems]}
         </ul>
       );
@@ -232,21 +232,21 @@ function parseMarkdown(text: string | null) {
     if (line.startsWith("### ")) {
       pushList();
       elements.push(
-        <h3 key={`h3-${i}`} className="text-lg sm:text-xl font-bold mt-8 mb-3 text-white tracking-tight">
+        <h3 key={`h3-${i}`} className="text-lg sm:text-xl font-bold mt-8 mb-3 text-zinc-950 dark:text-white tracking-tight">
           {parseInline(line.substring(4))}
         </h3>
       );
     } else if (line.startsWith("## ")) {
       pushList();
       elements.push(
-        <h2 key={`h2-${i}`} className="text-xl sm:text-2xl font-extrabold mt-10 mb-4 text-white border-b border-white/5 pb-2 tracking-tight">
+        <h2 key={`h2-${i}`} className="text-xl sm:text-2xl font-extrabold mt-10 mb-4 text-zinc-950 dark:text-white border-b border-zinc-200 dark:border-white/5 pb-2 tracking-tight">
           {parseInline(line.substring(3))}
         </h2>
       );
     } else if (line.startsWith("# ")) {
       pushList();
       elements.push(
-        <h1 key={`h1-${i}`} className="text-2xl sm:text-3xl font-extrabold mt-12 mb-6 text-white tracking-tight">
+        <h1 key={`h1-${i}`} className="text-2xl sm:text-3xl font-extrabold mt-12 mb-6 text-zinc-950 dark:text-white tracking-tight">
           {parseInline(line.substring(2))}
         </h1>
       );
@@ -272,7 +272,7 @@ function parseMarkdown(text: string | null) {
         const aspectClass = isVertical ? "aspect-[9/16] max-w-sm mx-auto" : "aspect-video";
 
         elements.push(
-          <div key={`embed-${i}`} className={`my-8 rounded-2xl overflow-hidden border border-white/5 bg-zinc-950/40 relative ${aspectClass} w-full flex items-center justify-center shadow-lg`}>
+          <div key={`embed-${i}`} className={`my-8 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950/40 relative ${aspectClass} w-full flex items-center justify-center shadow-lg`}>
             <iframe
               src={embedInfo.embedUrl}
               title={alt}
@@ -284,13 +284,13 @@ function parseMarkdown(text: string | null) {
         );
       } else if (embedInfo.type === "direct") {
         elements.push(
-          <div key={`video-${i}`} className="my-8 rounded-2xl overflow-hidden border border-white/5 bg-zinc-950/40 relative aspect-video w-full flex items-center justify-center shadow-lg">
+          <div key={`video-${i}`} className="my-8 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950/40 relative aspect-video w-full flex items-center justify-center shadow-lg">
             <video src={url} controls className="w-full h-full object-contain" />
           </div>
         );
       } else {
         elements.push(
-          <div key={`img-${i}`} className="my-8 rounded-2xl overflow-hidden border border-white/5 bg-zinc-950/40 relative aspect-video sm:max-h-[450px] w-full flex items-center justify-center shadow-lg">
+          <div key={`img-${i}`} className="my-8 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950/40 relative aspect-video sm:max-h-[450px] w-full flex items-center justify-center shadow-lg">
             <img
               src={url}
               alt={alt}
@@ -305,7 +305,7 @@ function parseMarkdown(text: string | null) {
     } else {
       pushList();
       elements.push(
-        <p key={`p-${i}`} className="text-zinc-300 text-sm sm:text-base leading-relaxed mb-6 font-light">
+        <p key={`p-${i}`} className="text-zinc-700 dark:text-zinc-300 text-sm sm:text-base leading-relaxed mb-6 font-light">
           {parseInline(line)}
         </p>
       );

@@ -126,39 +126,47 @@ export default function PhotographyShowcase({ initialMedia }: PhotographyShowcas
   );
 
   return (
-    <section id="gallery" className="pt-16 pb-24 border-t border-white/5 relative bg-transparent overflow-hidden">
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-rose-500/[0.03] rounded-full blur-[140px] pointer-events-none -z-10" />
+    <section id="gallery" className="pt-16 pb-24 border-t border-zinc-200/80 dark:border-white/5 relative bg-transparent overflow-hidden">
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-rose-500/[0.04] dark:bg-rose-500/[0.03] rounded-full blur-[140px] pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-16">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">Creative Gallery</span>
-            <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-white">Creative Media Showcase</h2>
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">Creative Gallery</span>
+            <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-zinc-950 dark:text-white">Creative Media Showcase</h2>
           </div>
-          <p className="text-zinc-400 max-w-md text-sm sm:text-base font-light">
+          <p className="text-zinc-600 dark:text-zinc-400 max-w-md text-sm sm:text-base font-light">
             A curated showcase of photography, cinematography, and graphic designs expressing visual stories.
           </p>
         </div>
 
         {/* Tab Filter Pills */}
-        <div className="flex flex-wrap justify-center gap-3 w-full mb-12">
+        <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3 w-full mb-12">
           {tabs.map((tab) => {
             const isSelected = selectedTab === tab.slug;
             return (
               <button
                 key={tab.slug}
                 onClick={() => setSelectedTab(tab.slug)}
-                className="relative px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors duration-300 flex items-center gap-2 cursor-pointer outline-none border border-white/5"
+                className={`relative px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-colors duration-300 flex items-center gap-2 cursor-pointer outline-none border ${
+                  isSelected 
+                    ? "border-transparent" 
+                    : "border-zinc-200 dark:border-white/5 bg-white/60 dark:bg-transparent"
+                }`}
               >
                 {isSelected && (
                   <motion.div
                     layoutId="activeGalleryTabIndicator"
-                    className="absolute inset-0 bg-white rounded-full z-0"
+                    className="absolute inset-0 bg-zinc-900 dark:bg-white rounded-full z-0 shadow-sm"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
-                <span className={`relative z-10 ${isSelected ? "text-black" : "text-zinc-400 hover:text-white"}`}>
+                <span className={`relative z-10 ${
+                  isSelected 
+                    ? "text-white dark:text-black font-bold" 
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+                }`}>
                   {tab.name}
                 </span>
               </button>

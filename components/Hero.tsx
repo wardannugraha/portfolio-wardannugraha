@@ -10,7 +10,7 @@ const badges = [
     name: "Creative Media", 
     desc: "Photo, Video & Design", 
     icon: Camera, 
-    color: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+    color: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
     backDesc: "Producing high-quality visual content through landscape photography, creative video editing, and graphic design.",
     href: "#gallery"
   },
@@ -18,7 +18,7 @@ const badges = [
     name: "Creative Tech", 
     desc: "Apps, UI/UX & AI", 
     icon: Code, 
-    color: "text-sky-400 bg-sky-500/10 border-sky-500/20",
+    color: "text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/20",
     backDesc: "Building modern web applications, designing intuitive UI/UX layouts, and integrating intelligent machine learning models.",
     href: "#work"
   },
@@ -26,7 +26,7 @@ const badges = [
     name: "Credentials", 
     desc: "Education & Certs", 
     icon: Award, 
-    color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+    color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
     backDesc: "Academic background in computer science along with verified professional certifications and leadership achievements.",
     href: "#credentials"
   },
@@ -34,7 +34,7 @@ const badges = [
     name: "Achievements", 
     desc: "Awards & Milestones", 
     icon: BookOpen, 
-    color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     backDesc: "A history of competitive honors, leadership awards, and notable milestones earned across multiple disciplines.",
     href: "#achievements"
   },
@@ -69,7 +69,7 @@ function BentoCard({ badge }: { badge: typeof badges[0] }) {
           ref={cardRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className="flip-card-front absolute inset-0 p-3 sm:p-5 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 sm:gap-3 bg-zinc-950/95 border border-white/5 hover:border-white/10 transition-colors duration-300 overflow-hidden"
+          className="flip-card-front absolute inset-0 p-3 sm:p-5 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center gap-1.5 sm:gap-3 bg-white/85 dark:bg-zinc-950/95 border border-zinc-200/80 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10 shadow-sm dark:shadow-none transition-colors duration-300 overflow-hidden"
         >
           {/* Glare sheen overlay */}
           <div
@@ -83,8 +83,8 @@ function BentoCard({ badge }: { badge: typeof badges[0] }) {
           <div className={`p-1.5 sm:p-3 rounded-lg sm:rounded-xl border ${badge.color}`}>
             <Icon className="w-4 h-4 sm:w-5 h-5" />
           </div>
-          <span className="font-bold text-xs sm:text-base text-zinc-100 tracking-tight">{badge.name}</span>
-          <span className="text-[9px] sm:text-xs text-zinc-400 font-normal">{badge.desc}</span>
+          <span className="font-bold text-xs sm:text-base text-zinc-900 dark:text-zinc-100 tracking-tight">{badge.name}</span>
+          <span className="text-[9px] sm:text-xs text-zinc-500 dark:text-zinc-400 font-normal">{badge.desc}</span>
         </div>
 
         {/* Back Face of Card */}
@@ -108,7 +108,6 @@ function BentoCard({ badge }: { badge: typeof badges[0] }) {
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [mouseCoords, setMouseCoords] = useState({ x: -1000, y: -1000 });
-
 
   // Tracking mouse movement across the Hero section to reveal the grid spotlights
   const handleSectionMouseMove = (e: React.MouseEvent) => {
@@ -148,7 +147,7 @@ export default function Hero() {
     <section 
       ref={sectionRef}
       onMouseMove={handleSectionMouseMove}
-      className="relative min-h-screen flex items-center justify-center pt-28 pb-16 overflow-hidden bg-[#030303]"
+      className="relative min-h-screen flex items-center justify-center pt-28 pb-16 overflow-hidden bg-transparent"
     >
       {/* Plexus Canvas Background */}
       <PlexusEffect />
@@ -164,7 +163,7 @@ export default function Hero() {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-violet-600/5 rounded-full blur-[100px] pointer-events-none z-0"
+        className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-violet-600/5 dark:bg-violet-600/5 rounded-full blur-[100px] pointer-events-none z-0"
       />
       <motion.div
         animate={{
@@ -177,11 +176,11 @@ export default function Hero() {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none z-0"
+        className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-600/5 dark:bg-blue-600/5 rounded-full blur-[120px] pointer-events-none z-0"
       />
 
       {/* Giant Typographic Marquee */}
-      <div className="absolute top-1/3 left-0 w-full overflow-hidden pointer-events-none opacity-20 select-none z-0">
+      <div className="absolute top-1/3 left-0 w-full overflow-hidden pointer-events-none opacity-15 dark:opacity-20 select-none z-0">
         <motion.div
           animate={{ x: [0, -1000] }}
           transition={{
@@ -190,7 +189,7 @@ export default function Hero() {
             repeat: Infinity,
           }}
           className="flex whitespace-nowrap text-[8vw] font-black uppercase text-transparent tracking-tighter"
-          style={{ WebkitTextStroke: "1px rgba(255,255,255,0.02)" }}
+          style={{ WebkitTextStroke: "1px rgba(120,120,120,0.15)" }}
         >
           <span>CREATOR • BUILDER • CONTRIBUTOR • DEBATER •&nbsp;</span>
           <span>CREATOR • BUILDER • CONTRIBUTOR • DEBATER •&nbsp;</span>
@@ -217,7 +216,7 @@ export default function Hero() {
           {/* Tagline */}
           <motion.span
             variants={wordVariants}
-            className="text-xs font-semibold tracking-widest uppercase text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3.5 py-1.5 rounded-full z-10 animate-pulse"
+            className="text-xs font-semibold tracking-widest uppercase text-violet-600 dark:text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3.5 py-1.5 rounded-full z-10 animate-pulse"
           >
             Creative Technologist & Creator
           </motion.span>
@@ -225,15 +224,15 @@ export default function Hero() {
           {/* Preheader name introduction */}
           <motion.p
             variants={wordVariants}
-            className="text-zinc-500 font-semibold text-xs sm:text-sm tracking-widest uppercase z-10"
+            className="text-zinc-500 dark:text-zinc-400 font-semibold text-xs sm:text-sm tracking-widest uppercase z-10"
           >
             Hi, I&apos;m Wardan Nugraha Ahmad
           </motion.p>
 
-          {/* Staggered Word Reveal Headline (leading adjusted to 1.18 to prevent descender clipping) */}
+          {/* Staggered Word Reveal Headline */}
           <motion.h1
             variants={wordVariants}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.18] text-white z-10 pb-2"
+            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.18] text-zinc-950 dark:text-white z-10 pb-2"
           >
             {"Creating Digital Experiences ".split(" ").map((w, i) => (
               <motion.span key={i} variants={wordVariants} className="inline-block mr-2.5 pb-3">
@@ -258,7 +257,7 @@ export default function Hero() {
           {/* Subheading */}
           <motion.p
             variants={wordVariants}
-            className="text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed font-light z-10"
+            className="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed font-light z-10"
           >
             I craft elegant solutions by bridging the gap between design and technology. 
             Designing, building, and contributing to high-impact digital products.
@@ -268,7 +267,7 @@ export default function Hero() {
           <motion.div variants={wordVariants} className="flex flex-col sm:flex-row gap-4 mt-2 z-10">
             <a
               href="#work"
-              className="bg-white hover:bg-zinc-200 text-zinc-950 font-semibold px-8 py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg inline-flex items-center justify-center gap-2 group cursor-pointer"
+              className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold px-8 py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg inline-flex items-center justify-center gap-2 group cursor-pointer"
             >
               Explore My Work
               <ArrowDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
@@ -276,7 +275,7 @@ export default function Hero() {
             
             <a
               href="#about"
-              className="glass-card hover:bg-white/10 text-white font-medium px-8 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center justify-center cursor-pointer"
+              className="glass-card hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-900 dark:text-white font-medium px-8 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center justify-center cursor-pointer shadow-sm dark:shadow-none"
             >
               Read My Story
             </a>
@@ -285,7 +284,7 @@ export default function Hero() {
           {/* Bento Badges (using 3D Flip Cards Y-Axis) */}
           <motion.div
             variants={wordVariants}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 w-full max-w-4xl mt-12 pt-8 border-t border-white/5 z-10"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 w-full max-w-4xl mt-12 pt-8 border-t border-zinc-200 dark:border-white/5 z-10"
           >
             {badges.map((badge) => (
               <BentoCard key={badge.name} badge={badge} />

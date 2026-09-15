@@ -8,6 +8,7 @@ import {
   ChevronUp, ChevronDown, Menu
 } from "lucide-react";
 import { parseEmbedUrl } from "@/lib/embedParser";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface Category {
   id: string;
@@ -1154,7 +1155,7 @@ export default function AdminDashboardClient({
 
 
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 flex flex-col md:flex-row pt-16">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 flex flex-col md:flex-row pt-16 transition-colors duration-400">
       {/* Toast Notification */}
       {successMsg && (
         <div className="fixed bottom-5 right-5 z-50 bg-emerald-500 text-black font-semibold py-3 px-5 rounded-xl flex items-center gap-2 shadow-2xl transition-all duration-300">
@@ -1178,45 +1179,53 @@ export default function AdminDashboardClient({
       )}
 
       {/* Mobile Top Header */}
-      <div className="w-full md:hidden flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#030303]/90 backdrop-blur-md sticky top-16 z-30">
+      <div className="w-full md:hidden flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-white/5 bg-[#f8f9fa]/90 dark:bg-[#030303]/90 backdrop-blur-md sticky top-16 z-30">
         <div className="flex items-center gap-2">
-          <LayoutDashboard className="w-5 h-5 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Admin Console</span>
+          <LayoutDashboard className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+          <span className="text-sm font-semibold text-zinc-950 dark:text-white">Admin Console</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsSidebarOpen(true)}
-          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider cursor-pointer"
-        >
-          <Menu className="w-4 h-4" />
-          Menu
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(true)}
+            className="px-4 py-2 rounded-xl bg-zinc-200 dark:bg-white/5 hover:bg-zinc-300 dark:hover:bg-white/10 text-zinc-900 dark:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider cursor-pointer"
+          >
+            <Menu className="w-4 h-4" />
+            Menu
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
       <aside className={`
         fixed md:static inset-y-16 md:inset-y-auto left-0 z-50
         w-64 h-[calc(100vh-4rem)] md:h-auto 
-        bg-[#090909] md:bg-transparent
-        border-r border-white/5 md:border-r md:border-b-0
+        bg-white dark:bg-[#090909] md:bg-transparent
+        border-r border-zinc-200 dark:border-white/5 md:border-r md:border-b-0
         p-6 flex flex-col justify-between
-        transition-transform duration-300 md:transition-none
+        transition-transform duration-300 md:transition-none shadow-lg md:shadow-none
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
         <div className="space-y-8">
-          <div className="flex items-center justify-between md:block">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Workspace</h2>
-              <p className="text-sm font-semibold text-white mt-1">Admin Console</p>
+              <p className="text-sm font-semibold text-zinc-950 dark:text-white mt-1">Admin Console</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen(false)}
-              className="md:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer"
-              title="Close Menu"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(false)}
+                className="md:hidden p-2 rounded-xl bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white transition-colors cursor-pointer"
+                title="Close Menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <nav className="space-y-1">
             {[
@@ -1239,8 +1248,8 @@ export default function AdminDashboardClient({
                     setIsSidebarOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${isActive
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-zinc-900 text-white dark:bg-white/10 dark:text-white font-semibold"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white"
                     }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1251,11 +1260,11 @@ export default function AdminDashboardClient({
           </nav>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-white/5">
+        <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-white/5">
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               Sign Out

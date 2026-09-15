@@ -101,6 +101,7 @@ export default function PlexusEffect() {
       ctx.clearRect(0, 0, width, height);
 
       const mouse = mouseRef.current;
+      const isDark = document.documentElement.classList.contains("dark");
 
       // Update positions and apply mouse attraction (magnetic gravity effect)
       particles.forEach((p) => {
@@ -143,8 +144,10 @@ export default function PlexusEffect() {
         // Draw particle node
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        // Soft violet/blue aura for node
-        ctx.fillStyle = `rgba(167, 139, 250, ${p.baseAlpha})`;
+        // Soft violet/blue aura for node based on theme
+        ctx.fillStyle = isDark
+          ? `rgba(167, 139, 250, ${p.baseAlpha})`
+          : `rgba(124, 58, 237, ${p.baseAlpha * 0.75})`;
         ctx.fill();
       });
 
@@ -160,14 +163,17 @@ export default function PlexusEffect() {
 
           if (dist < connectionDistanceLimit) {
             // Farther distance = lower opacity
-            const alpha = (1 - dist / connectionDistanceLimit) * 0.35;
+            const factor = 1 - dist / connectionDistanceLimit;
+            const alpha = factor * (isDark ? 0.35 : 0.22);
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
             
             // Purple/blue gradient connection lines
-            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
-            ctx.lineWidth = 0.85;
+            ctx.strokeStyle = isDark
+              ? `rgba(139, 92, 246, ${alpha})`
+              : `rgba(99, 102, 241, ${alpha})`;
+            ctx.lineWidth = isDark ? 0.85 : 0.75;
             ctx.stroke();
           }
         }
@@ -179,14 +185,17 @@ export default function PlexusEffect() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < mouseConnectionDistanceLimit) {
-            const alpha = (1 - dist / mouseConnectionDistanceLimit) * 0.65;
+            const factor = 1 - dist / mouseConnectionDistanceLimit;
+            const alpha = factor * (isDark ? 0.65 : 0.5);
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(mouse.x, mouse.y);
             
             // Brighter neon-purple line for active cursor connections
-            ctx.strokeStyle = `rgba(167, 139, 250, ${alpha})`;
-            ctx.lineWidth = 1.25;
+            ctx.strokeStyle = isDark
+              ? `rgba(167, 139, 250, ${alpha})`
+              : `rgba(124, 58, 237, ${alpha})`;
+            ctx.lineWidth = isDark ? 1.25 : 1.1;
             ctx.stroke();
           }
         }

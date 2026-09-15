@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ArrowUpRight } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -72,14 +73,14 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="text-lg font-bold tracking-tight hover:opacity-80 transition-opacity">
-              <span className="text-white">Wardan</span>
-              <span className="text-violet-500 ml-1.5">Nugraha</span>
+              <span className="text-zinc-900 dark:text-white">Wardan</span>
+              <span className="text-violet-600 dark:text-violet-500 ml-1.5">Nugraha</span>
             </Link>
           </div>
 
           {/* Desktop Nav Items */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-8">
+            <div className="ml-10 flex items-center space-x-6 lg:space-x-8">
               {navItems.map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                 
@@ -87,23 +88,25 @@ export default function Navbar() {
                   return (
                     <div key={item.name} className="relative group py-2">
                       <button
-                        className={`text-sm font-medium transition-colors duration-200 hover:text-white flex items-center gap-1 cursor-pointer outline-none ${
-                          isActive ? "text-white" : "text-zinc-400"
+                        className={`text-sm font-medium transition-colors duration-200 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 cursor-pointer outline-none ${
+                          isActive 
+                            ? "text-zinc-950 dark:text-white font-semibold" 
+                            : "text-zinc-600 dark:text-zinc-400"
                         }`}
                       >
                         {item.name}
-                        <svg className="w-3.5 h-3.5 transition-transform duration-250 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3.5 h-3.5 transition-transform duration-250 group-hover:rotate-180 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
                       
                       {/* Glassmorphic Dropdown Menu */}
-                      <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl bg-zinc-950/95 border border-white/5 p-2 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 backdrop-blur-xl z-50">
+                      <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 rounded-2xl bg-white/95 dark:bg-zinc-950/95 border border-zinc-200/80 dark:border-white/5 p-2 shadow-xl dark:shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 backdrop-blur-xl z-50">
                         {item.dropdown.map((subItem) => (
                           <button
                             key={subItem.name}
                             onClick={() => handleDropdownItemClick(subItem.slug, subItem.sectionId)}
-                            className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-150 flex items-center justify-between cursor-pointer"
+                            className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all duration-150 flex items-center justify-between cursor-pointer"
                           >
                             {subItem.name}
                           </button>
@@ -118,29 +121,37 @@ export default function Navbar() {
                     key={item.name}
                     href={item.href}
                     onClick={(e) => handleHashLinkClick(e, item.href)}
-                    className={`text-sm font-medium transition-colors duration-200 hover:text-white ${
-                      isActive ? "text-white" : "text-zinc-400"
+                    className={`text-sm font-medium transition-colors duration-200 hover:text-zinc-900 dark:hover:text-white ${
+                      isActive 
+                        ? "text-zinc-950 dark:text-white font-semibold" 
+                        : "text-zinc-600 dark:text-zinc-400"
                     }`}
                   >
                     {item.name}
                   </Link>
                 );
               })}
+
+              {/* Theme Toggle Button */}
+              <ThemeToggle />
+
+              {/* Hire Me CTA Button */}
               <Link
                 href="/#contact"
                 onClick={(e) => handleHashLinkClick(e, "/#contact")}
-                className="flex items-center gap-1 text-sm font-medium bg-white/10 hover:bg-white/15 text-white py-1.5 px-4 rounded-full border border-white/5 transition-all"
+                className="flex items-center gap-1 text-sm font-medium bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white py-1.5 px-4 rounded-full border border-zinc-900 dark:border-white/5 shadow-sm transition-all"
               >
                 Hire Me <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          {/* Mobile Actions: Theme Toggle + Menu Button */}
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-zinc-400 hover:text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+              className="text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500/50"
               aria-label="Toggle menu"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -151,13 +162,13 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {isOpen && (
-        <div className="md:hidden border-b border-white/5 bg-zinc-950/95 backdrop-blur-lg max-h-[85vh] overflow-y-auto">
-          <div className="px-2 pt-2 pb-4 space-y-2 sm:px-3">
+        <div className="md:hidden border-b border-zinc-200 dark:border-white/5 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-lg max-h-[85vh] overflow-y-auto">
+          <div className="px-3 pt-2 pb-5 space-y-2 sm:px-4">
             {navItems.map((item) => (
               <div key={item.name} className="space-y-1">
                 {item.dropdown ? (
                   <>
-                    <span className="block px-3 py-1 text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    <span className="block px-3 py-1 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
                       {item.name} Fields
                     </span>
                     {item.dropdown.map((subItem) => (
@@ -167,7 +178,7 @@ export default function Navbar() {
                           setIsOpen(false);
                           handleDropdownItemClick(subItem.slug, subItem.sectionId);
                         }}
-                        className="w-full text-left block px-6 py-2 rounded-md text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                        className="w-full text-left block px-6 py-2 rounded-md text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                       >
                         {subItem.name}
                       </button>
@@ -180,7 +191,7 @@ export default function Navbar() {
                       setIsOpen(false);
                       handleHashLinkClick(e, item.href);
                     }}
-                    className="block px-3 py-2.5 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-white/5 transition-all"
+                    className="block px-3 py-2.5 rounded-md text-base font-medium text-zinc-800 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all"
                   >
                     {item.name}
                   </Link>
@@ -193,7 +204,7 @@ export default function Navbar() {
                 setIsOpen(false);
                 handleHashLinkClick(e, "/#contact");
               }}
-              className="flex items-center justify-between w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white px-4 py-3 rounded-xl font-medium text-center transition-colors"
+              className="flex items-center justify-between w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white px-4 py-3 rounded-xl font-medium text-center transition-colors shadow-md"
             >
               <span>Hire Me</span>
               <ArrowUpRight className="w-5 h-5" />
