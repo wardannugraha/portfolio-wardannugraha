@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import CursorGlow from "@/components/CursorGlow";
 import CustomCursor from "@/components/CustomCursor";
+import GlowingButterfly from "@/components/GlowingButterfly";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
@@ -19,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Wardan Nugraha Ahmad | Personal Portfolio",
   description: "Personal Brand & Creative Technology Portfolio of Wardan Nugraha Ahmad. Creator, Builder, Learner, and Contributor.",
+  icons: {
+    icon: "/SemicolonButterflyWhite.png",
+    shortcut: "/SemicolonButterflyWhite.png",
+    apple: "/SemicolonButterflyWhite.png",
+  },
 };
 
 export default function RootLayout({
@@ -58,6 +64,7 @@ export default function RootLayout({
         <ThemeProvider>
           <CursorGlow />
           <CustomCursor />
+          <GlowingButterfly />
           <Navbar />
           <main className="flex-grow flex flex-col">
             {children}
