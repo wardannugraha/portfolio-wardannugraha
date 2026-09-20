@@ -172,6 +172,44 @@ export default function AdminDashboardClient({
   const [projTechs, setProjTechs] = useState<string[]>([]);
   const [projTechInput, setProjTechInput] = useState("");
 
+  const handleAddTechTag = (tagToAdd?: string) => {
+    const val = (tagToAdd || projTechInput).trim();
+    if (!val) return;
+    if (!projTechs.some(t => t.toLowerCase() === val.toLowerCase())) {
+      setProjTechs(prev => [...prev, val]);
+    }
+    if (!tagToAdd) {
+      setProjTechInput("");
+    }
+  };
+
+  const handleRemoveTechTag = (techToRemove: string) => {
+    setProjTechs(prev => prev.filter(t => t.toLowerCase() !== techToRemove.toLowerCase()));
+  };
+
+  const getTechSuggestions = (catId: string) => {
+    const cat = categories.find(c => c.id === catId);
+    const slug = (cat?.slug || "").toLowerCase();
+    const name = (cat?.name || "").toLowerCase();
+
+    if (slug.includes("web") || name.includes("web") || slug.includes("dev") || name.includes("dev")) {
+      return ["Next.js", "React", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Prisma", "Express", "Vite"];
+    }
+    if (slug.includes("ui") || slug.includes("ux") || name.includes("ui") || name.includes("ux") || slug.includes("design") || name.includes("design")) {
+      return ["Figma", "Adobe XD", "Framer", "Protopie", "Design System", "Wireframing", "User Research"];
+    }
+    if (slug.includes("ai") || slug.includes("ml") || name.includes("ai") || name.includes("ml")) {
+      return ["Python", "PyTorch", "TensorFlow", "OpenAI API", "Hugging Face", "LangChain", "FastAPI", "Pandas"];
+    }
+    if (slug.includes("video") || slug.includes("edit") || name.includes("video") || name.includes("edit")) {
+      return ["Adobe Premiere Pro", "After Effects", "DaVinci Resolve", "CapCut", "Final Cut Pro", "Color Grading"];
+    }
+    if (slug.includes("photo") || name.includes("photo")) {
+      return ["Adobe Lightroom", "Adobe Photoshop", "Sony Alpha", "Canon EOS", "Color Correction", "RAW Editing"];
+    }
+    return ["Next.js", "React", "TypeScript", "Tailwind CSS", "Figma", "Adobe Premiere Pro", "Python", "Node.js"];
+  };
+
   // Media Form States
   const [mediaTitle, setMediaTitle] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
@@ -1288,51 +1326,51 @@ export default function AdminDashboardClient({
         {activeTab === "dashboard" && (
           <>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard Overview</h1>
-              <p className="text-zinc-400 text-sm mt-1">Quick statistics and management controls</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Dashboard Overview</h1>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Quick statistics and management controls</p>
             </div>
 
             {/* Stats */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
                 <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Core Projects</span>
-                <p className="text-3xl font-extrabold text-white mt-2">{projects.length}</p>
-                <p className="text-xs text-zinc-400 mt-1">Builder items in DB</p>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{projects.length}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Builder items in DB</p>
               </div>
 
               <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
                 <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Photography Media</span>
-                <p className="text-3xl font-extrabold text-white mt-2">{media.length}</p>
-                <p className="text-xs text-zinc-400 mt-1">Creator items in DB</p>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{media.length}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Creator items in DB</p>
               </div>
 
               <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
                 <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Expertise Skills</span>
-                <p className="text-3xl font-extrabold text-white mt-2">{skills.length}</p>
-                <p className="text-xs text-zinc-400 mt-1">Interactive skills stored</p>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{skills.length}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Interactive skills stored</p>
               </div>
 
               <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
                 <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Credentials & Prestasi</span>
-                <p className="text-3xl font-extrabold text-white mt-2">{achievements.length}</p>
-                <p className="text-xs text-zinc-400 mt-1">Certifications & Awards</p>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{achievements.length}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Certifications & Awards</p>
               </div>
             </div>
 
             {/* Admin Notifications / Info Panel */}
-            <div className="glass-card rounded-3xl p-8 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-4">Database Log & Systems</h2>
-              <div className="divide-y divide-white/5">
+            <div className="glass-card rounded-3xl p-8 border border-zinc-200/80 dark:border-white/5">
+              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-4">Database Log & Systems</h2>
+              <div className="divide-y divide-zinc-200/80 dark:divide-white/5">
                 {[
-                  { title: "Dynamic category sorting enabled", status: "Active UI Layer", color: "text-emerald-400" },
-                  { title: "Connected to Neon PostgreSQL project", status: "Active PostgreSQL", color: "text-emerald-400" },
-                  { title: "Authentication cookie expiration", status: "24 Hours Secure", color: "text-violet-400" },
+                  { title: "Dynamic category sorting enabled", status: "Active UI Layer", color: "text-emerald-500 dark:text-emerald-400" },
+                  { title: "Connected to Neon PostgreSQL project", status: "Active PostgreSQL", color: "text-emerald-500 dark:text-emerald-400" },
+                  { title: "Authentication cookie expiration", status: "24 Hours Secure", color: "text-violet-600 dark:text-violet-400" },
                 ].map((act, i) => (
                   <div key={i} className="py-4 flex items-center justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-violet-400 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h3 className="text-sm font-semibold text-white">{act.title}</h3>
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{act.title}</h3>
                         <p className="text-zinc-500 text-xs mt-0.5">Automated console notification</p>
                       </div>
                     </div>
@@ -1372,8 +1410,8 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Projects</h1>
-                <p className="text-zinc-400 text-sm mt-1">Add, update, and delete Builder category entries</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Projects</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Add, update, and delete Builder category entries</p>
               </div>
               <button
                 type="button"
@@ -1382,7 +1420,7 @@ export default function AdminDashboardClient({
                   setEditingProjId(null);
                   setIsProjModalOpen(true);
                 }}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Add Project
@@ -1390,19 +1428,19 @@ export default function AdminDashboardClient({
             </div>
 
             {/* List of current projects */}
-            <div className="glass-card rounded-3xl p-6 border border-white/5">
+            <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold text-white">Current Projects ({filteredProjects.length})</h2>
+                <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Projects ({filteredProjects.length})</h2>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
                   <select
                     value={selectedProjCategory}
                     onChange={(e) => setSelectedProjCategory(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-[#0c0c0c] border border-white/10 text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
                   >
-                    <option value="all" className="bg-[#0f0f0f] text-white">All Categories</option>
+                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                      <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1410,7 +1448,7 @@ export default function AdminDashboardClient({
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase font-semibold">
+                    <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-4">Image</th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
@@ -1419,15 +1457,15 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
+                  <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
                     {filteredProjects.map((p, idx) => (
-                      <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={p.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
                         <td className="py-3 px-4">
                           <a
                             href={p.featuredImage}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-12 h-8 rounded bg-zinc-950 border border-white/5 overflow-hidden flex-shrink-0 relative group/thumb"
+                            className="block w-12 h-8 rounded bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 overflow-hidden flex-shrink-0 relative group/thumb"
                             title="Click to view full image"
                           >
                             <img
@@ -1437,13 +1475,13 @@ export default function AdminDashboardClient({
                             />
                           </a>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-white">{p.title}</td>
-                        <td className="py-3 px-4 text-zinc-400">{p.category.name}</td>
+                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{p.title}</td>
+                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{p.category.name}</td>
                         <td className="py-3 px-4">
                           {p.isFeatured ? (
-                            <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
+                            <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
                           ) : (
-                            <span className="text-[10px] font-semibold bg-zinc-500/10 border border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
+                            <span className="text-[10px] font-semibold bg-zinc-500/10 border border-zinc-200 dark:border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -1452,17 +1490,17 @@ export default function AdminDashboardClient({
                               type="button"
                               onClick={() => handleMoveItem("projects", p.id, "up")}
                               disabled={idx === 0}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Naik"
                             >
                               <ChevronUp className="w-4 h-4" />
                             </button>
-                            <span className="text-xs font-mono w-6 text-center">{p.order || 0}</span>
+                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{p.order || 0}</span>
                             <button
                               type="button"
                               onClick={() => handleMoveItem("projects", p.id, "down")}
                               disabled={idx === filteredProjects.length - 1}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
                               <ChevronDown className="w-4 h-4" />
@@ -1475,54 +1513,32 @@ export default function AdminDashboardClient({
                               setEditingProjId(p.id);
                               setProjTitle(p.title);
                               setProjDesc(p.description);
+                              setProjTechs(parseTechStack(p.technologies));
+                              setProjTechInput("");
                               setProjContent(p.content || "");
-                              setProjImage(p.featuredImage);
+                              setProjImage(p.featuredImage || (p as any).image || "");
                               setProjCatId(p.categoryId);
-                              setProjDemo(p.demoUrl || "");
-                              setProjGit(p.githubUrl || "");
                               setProjFeatured(p.isFeatured);
                               setProjOrder(p.order || 0);
-
-                              let linksArr = [];
+                              let parsedLinks = [];
                               if (p.links) {
                                 try {
-                                  linksArr = JSON.parse(p.links);
+                                  parsedLinks = JSON.parse(p.links);
                                 } catch (e) {
-                                  console.error("Failed to parse project links:", e);
+                                  console.error("Failed to parse project links", e);
                                 }
                               }
-                              if (linksArr.length === 0) {
-                                if (p.demoUrl) linksArr.push({ label: "Visit Live Demo", url: p.demoUrl, icon: "link" });
-                                if (p.githubUrl) linksArr.push({ label: "Source Code", url: p.githubUrl, icon: "github" });
-                              }
-                              setProjLinks(linksArr);
-
-                              let techsArr: string[] = [];
-                              if (p.technologies) {
-                                try {
-                                  const parsed = JSON.parse(p.technologies);
-                                  if (Array.isArray(parsed)) {
-                                    techsArr = parsed.map(t => String(t).trim()).filter(Boolean);
-                                  } else if (typeof parsed === "string") {
-                                    techsArr = parsed.split(",").map(s => s.trim()).filter(Boolean);
-                                  }
-                                } catch {
-                                  techsArr = p.technologies.split(",").map(s => s.trim()).filter(Boolean);
-                                }
-                              }
-                              setProjTechs(techsArr);
-                              setProjTechInput("");
-
+                              setProjLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
                               setIsProjModalOpen(true);
                             }}
-                            className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteProject(p.id)}
-                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1544,86 +1560,82 @@ export default function AdminDashboardClient({
                 resetProjectForm();
               }}
               title={editingProjId ? "Edit Project" : "Add New Project"}
-              maxWidthClass="max-w-5xl"
+              maxWidthClass="max-w-4xl"
             >
               <form onSubmit={handleAddProject} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Title *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Title *</label>
                     <input
                       type="text" required value={projTitle} onChange={e => setProjTitle(e.target.value)}
-                      placeholder="E-Commerce System"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      placeholder="e.g. Modern E-Commerce Platform"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Description *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Description *</label>
                     <textarea
                       required rows={3} value={projDesc} onChange={e => setProjDesc(e.target.value)}
-                      placeholder="A short summary of the project to show in the cards"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      placeholder="Brief overview summarizing project scope..."
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
 
-                  {/* Technologies & Tools (Tech Stack) */}
-                  <div className="space-y-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                        Technologies & Tools (Tech Stack)
-                      </label>
-                      <span className="text-[10px] text-zinc-500">{projTechs.length} tools added</span>
+                  {/* Technologies & Tools Input */}
+                  <div className="space-y-3 p-4 rounded-2xl bg-zinc-100/60 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/5">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                          Technologies & Tools
+                        </label>
+                        <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                          {projTechs.length} tools added
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2.5">
+                        Masukkan teknologi / tools (Next.js, Figma, Premiere Pro, Tailwind, PostgreSQL, dll).
+                      </p>
                     </div>
 
-                    {/* Tag input and Add button */}
+                    {/* Quick Add Tag Input */}
                     <div className="flex gap-2">
                       <input
                         type="text"
                         value={projTechInput}
                         onChange={(e) => setProjTechInput(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === ",") {
+                          if (e.key === "Enter") {
                             e.preventDefault();
-                            const val = projTechInput.replace(/,/g, "").trim();
-                            if (val && !projTechs.includes(val)) {
-                              setProjTechs([...projTechs, val]);
-                            }
-                            setProjTechInput("");
+                            handleAddTechTag();
                           }
                         }}
-                        placeholder="Type tool (e.g. Next.js, Figma, Premiere Pro) & press Enter"
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                        placeholder="Ketik tool lalu klik Tambah..."
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                       />
                       <button
                         type="button"
-                        onClick={() => {
-                          const val = projTechInput.replace(/,/g, "").trim();
-                          if (val && !projTechs.includes(val)) {
-                            setProjTechs([...projTechs, val]);
-                          }
-                          setProjTechInput("");
-                        }}
-                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        onClick={() => handleAddTechTag()}
+                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shadow-sm"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        Add
+                        Tambah
                       </button>
                     </div>
 
-                    {/* Selected Tags list */}
+                    {/* Interactive Badges / Pills */}
                     {projTechs.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {projTechs.map((tech, idx) => (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {projTechs.map((tech, i) => (
                           <span
-                            key={idx}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-violet-500/15 border border-violet-500/30 text-violet-200 text-xs font-medium"
+                            key={i}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-violet-500/10 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/20 dark:border-violet-500/30"
                           >
-                            <span>{tech}</span>
+                            {tech}
                             <button
                               type="button"
-                              onClick={() => setProjTechs(projTechs.filter((_, i) => i !== idx))}
-                              className="text-violet-300 hover:text-white p-0.5 rounded hover:bg-violet-500/30 transition-colors cursor-pointer"
-                              title="Hapus tool"
+                              onClick={() => handleRemoveTechTag(tech)}
+                              className="text-violet-500 hover:text-violet-800 dark:text-violet-300 dark:hover:text-white p-0.5 rounded hover:bg-violet-500/20 transition-colors cursor-pointer"
+                              title={`Hapus ${tech}`}
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -1632,38 +1644,42 @@ export default function AdminDashboardClient({
                       </div>
                     )}
 
-                    {/* Quick Suggestion Chips */}
-                    <div className="pt-2 border-t border-white/5">
-                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider mb-2">
-                        Rekomendasi Cepat (Klik untuk menambah):
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          "Next.js", "React", "TypeScript", "Tailwind CSS", "Node.js", "Prisma", "PostgreSQL",
-                          "Figma", "Adobe Premiere Pro", "After Effects", "DaVinci Resolve", "Adobe Lightroom",
-                          "Adobe Photoshop", "Adobe Illustrator", "Python", "PyTorch", "Docker", "Git"
-                        ]
-                          .filter(t => !projTechs.includes(t))
-                          .slice(0, 12)
-                          .map((tool) => (
+                    {/* Quick Suggestions based on current category */}
+                    <div className="pt-2 border-t border-zinc-200 dark:border-white/5">
+                      <span className="text-[10px] uppercase font-semibold text-zinc-400 dark:text-zinc-500 block mb-1.5">
+                        Rekomendasi cepat:
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {getTechSuggestions(projCatId).map((sugg) => {
+                          const isAlreadyAdded = projTechs.some(
+                            (t) => t.toLowerCase() === sugg.toLowerCase()
+                          );
+                          return (
                             <button
-                              key={tool}
+                              key={sugg}
                               type="button"
-                              onClick={() => setProjTechs([...projTechs, tool])}
-                              className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-violet-500/20 text-zinc-400 hover:text-violet-300 border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer flex items-center gap-1"
+                              disabled={isAlreadyAdded}
+                              onClick={() => handleAddTechTag(sugg)}
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                isAlreadyAdded
+                                  ? "opacity-30 border-transparent bg-zinc-200 dark:bg-white/5 text-zinc-400 line-through cursor-not-allowed"
+                                  : "border-zinc-200 dark:border-white/10 hover:border-violet-500/50 bg-white dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:text-violet-600 dark:hover:text-violet-300"
+                              }`}
                             >
-                              <Plus className="w-2.5 h-2.5 opacity-60" />
-                              {tool}
+                              + {sugg}
                             </button>
-                          ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
+
+                  {/* Markdown Editor */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Detailed Content</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Case Study Markdown</label>
                       <div className="flex gap-3">
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
@@ -1687,7 +1703,7 @@ export default function AdminDashboardClient({
                             });
                             setIsAssetPickerOpen(true);
                           }}
-                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
                         >
                           <Camera className="w-3 h-3" />
                           <span>Pilih Galeri</span>
@@ -1696,7 +1712,7 @@ export default function AdminDashboardClient({
                     </div>
 
                     {/* Markdown Editor Toolbar */}
-                    <div className="flex flex-wrap gap-1 p-1.5 bg-white/5 border border-white/10 rounded-t-xl">
+                    <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
                       <button
                         type="button"
                         onClick={() => {
@@ -1712,7 +1728,7 @@ export default function AdminDashboardClient({
                             }
                           );
                         }}
-                        className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                         title="Insert Image Link"
                       >
                         <Image className="w-3 h-3" />
@@ -1734,7 +1750,7 @@ export default function AdminDashboardClient({
                             }
                           );
                         }}
-                        className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                         title="Insert Video or Figma Embed"
                       >
                         <Video className="w-3 h-3" />
@@ -1755,14 +1771,14 @@ export default function AdminDashboardClient({
                             }
                           );
                         }}
-                        className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                         title="Insert Text Link"
                       >
                         <Link className="w-3 h-3" />
                         <span className="hidden sm:inline">Link</span>
                       </button>
 
-                      <div className="w-px h-4 bg-white/10 mx-1 align-self-center" />
+                      <div className="w-px h-4 bg-zinc-300 dark:bg-white/10 mx-1 align-self-center" />
 
                       <button
                         type="button"
@@ -1781,7 +1797,7 @@ export default function AdminDashboardClient({
                             insertAtCursor(`**Bold Text**`);
                           }
                         }}
-                        className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                         title="Bold text"
                       >
                         <Bold className="w-3 h-3" />
@@ -1804,7 +1820,7 @@ export default function AdminDashboardClient({
                             insertAtCursor(`*Italic Text*`);
                           }
                         }}
-                        className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center italic"
+                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center italic cursor-pointer"
                         title="Italic text"
                       >
                         <Italic className="w-3 h-3" />
@@ -1815,7 +1831,7 @@ export default function AdminDashboardClient({
                         onClick={() => {
                           insertAtCursor(`\n### `);
                         }}
-                        className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                         title="Heading 3"
                       >
                         <Heading className="w-3 h-3" />
@@ -1826,7 +1842,7 @@ export default function AdminDashboardClient({
                         onClick={() => {
                           insertAtCursor(`\n- `);
                         }}
-                        className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                         title="Bullet List"
                       >
                         <List className="w-3 h-3" />
@@ -1837,7 +1853,7 @@ export default function AdminDashboardClient({
                         onClick={() => {
                           insertAtCursor(`\n> `);
                         }}
-                        className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                         title="Quote"
                       >
                         <Quote className="w-3 h-3" />
@@ -1848,7 +1864,7 @@ export default function AdminDashboardClient({
                       ref={contentRef}
                       rows={8} value={projContent} onChange={e => setProjContent(e.target.value)}
                       placeholder="Case study or full markdown content..."
-                      className="w-full px-5 py-3.5 rounded-b-xl bg-white/5 border border-white/10 border-t-0 focus:border-violet-500 outline-none text-white text-sm transition-all duration-200 resize-y"
+                      className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
                     />
                   </div>
                 </div>
@@ -1856,19 +1872,19 @@ export default function AdminDashboardClient({
                 <div className="space-y-6">
                   {/* Image Field with file upload selector */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Featured Image *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Featured Image *</label>
                     <div className="flex flex-col gap-3">
                       <input
                         type="text" required value={projImage} onChange={e => setProjImage(e.target.value)}
                         placeholder="/uploads/project1.jpg or external https:// url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                       <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                           {uploadingProjImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5 text-white" />
+                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                           )}
                           <span>Upload File</span>
                           <input
@@ -1885,7 +1901,7 @@ export default function AdminDashboardClient({
                             setOnSelectAsset(() => (url: string) => setProjImage(url));
                             setIsAssetPickerOpen(true);
                           }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
@@ -1894,40 +1910,40 @@ export default function AdminDashboardClient({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Category *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Category *</label>
                     <select
                       value={projCatId} onChange={e => setProjCatId(e.target.value)}
-                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-sm transition-all duration-200"
                     >
                       {categories.map(cat => (
-                        <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                        <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
                     <input
                       type="number" value={projOrder} onChange={e => setProjOrder(Number(e.target.value))}
                       placeholder="0"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
                   <div className="flex items-center gap-3 pt-4">
                     <input
                       type="checkbox" id="projFeaturedEdit" checked={projFeatured} onChange={e => setProjFeatured(e.target.checked)}
-                      className="w-5 h-5 rounded accent-violet-600 bg-white/5 border border-white/10 focus:ring-0 cursor-pointer"
+                      className="w-5 h-5 rounded accent-violet-600 bg-white/5 border border-zinc-300 dark:border-white/10 focus:ring-0 cursor-pointer"
                     />
-                    <label htmlFor="projFeaturedEdit" className="text-sm font-semibold text-zinc-300 select-none cursor-pointer">
+                    <label htmlFor="projFeaturedEdit" className="text-sm font-semibold text-zinc-800 dark:text-zinc-300 select-none cursor-pointer">
                       Featured Project (Highlight on homepage)
                     </label>
                   </div>
                 </div>
 
                 {/* Project Action Links Builder */}
-                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-white/10">
+                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-zinc-200 dark:border-white/10">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Project Action Links ({projLinks.length})</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Project Action Links ({projLinks.length})</label>
                     <button
                       type="button"
                       onClick={() => setProjLinks([...projLinks, { label: "", url: "", icon: "link" }])}
@@ -1943,7 +1959,7 @@ export default function AdminDashboardClient({
                   ) : (
                     <div className="space-y-4">
                       {projLinks.map((link, idx) => (
-                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-100/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/5 shadow-inner">
                           <div className="flex-1 w-full">
                             <input
                               type="text"
@@ -1955,7 +1971,7 @@ export default function AdminDashboardClient({
                                 updated[idx].label = e.target.value;
                                 setProjLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="flex-1 w-full">
@@ -1977,7 +1993,7 @@ export default function AdminDashboardClient({
                                 }
                                 setProjLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="w-full sm:w-auto">
@@ -1988,14 +2004,14 @@ export default function AdminDashboardClient({
                                 updated[idx].icon = e.target.value;
                                 setProjLinks(updated);
                               }}
-                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-xs transition-all duration-200"
                             >
-                              <option value="link" className="bg-[#0f0f0f] text-white">🌐 Link (Default)</option>
-                              <option value="github" className="bg-[#0f0f0f] text-white">💻 GitHub</option>
-                              <option value="camera" className="bg-[#0f0f0f] text-white">📸 Galeri Foto</option>
-                              <option value="video" className="bg-[#0f0f0f] text-white">🎥 Video Reel</option>
-                              <option value="file" className="bg-[#0f0f0f] text-white">📄 Dokumen / Jurnal</option>
-                              <option value="layout" className="bg-[#0f0f0f] text-white">🎨 Desain / UI/UX</option>
+                              <option value="link" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🌐 Link (Default)</option>
+                              <option value="github" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💻 GitHub</option>
+                              <option value="camera" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📸 Galeri Foto</option>
+                              <option value="video" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎥 Video Reel</option>
+                              <option value="file" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📄 Dokumen / Jurnal</option>
+                              <option value="layout" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎨 Desain / UI/UX</option>
                             </select>
                           </div>
                           <button
@@ -2003,7 +2019,7 @@ export default function AdminDashboardClient({
                             onClick={() => {
                               setProjLinks(projLinks.filter((_, i) => i !== idx));
                             }}
-                            className="p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
+                            className="p-2.5 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
                             title="Delete Link"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2015,10 +2031,10 @@ export default function AdminDashboardClient({
                 </div>
 
                 {/* Submit button (Full Width) */}
-                <div className="lg:col-span-2 pt-6 border-t border-white/10">
+                <div className="lg:col-span-2 pt-6 border-t border-zinc-200 dark:border-white/10">
                   <button
                     type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingProjId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     {editingProjId ? "Save Changes" : "Create Project"}
@@ -2033,8 +2049,8 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Creative Media</h1>
-                <p className="text-zinc-400 text-sm mt-1">Add, update, and delete Creator category media items (Photos, Videos, Designs)</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Creative Media</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Add, update, and delete Creator category media items (Photos, Videos, Designs)</p>
               </div>
               <button
                 type="button"
@@ -2043,7 +2059,7 @@ export default function AdminDashboardClient({
                   setEditingMediaId(null);
                   setIsMediaModalOpen(true);
                 }}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Add Media
@@ -2051,19 +2067,19 @@ export default function AdminDashboardClient({
             </div>
 
             {/* Media list */}
-            <div className="glass-card rounded-3xl p-6 border border-white/5">
+            <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold text-white">Current Media Items ({filteredMedia.length})</h2>
+                <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Media Items ({filteredMedia.length})</h2>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
                   <select
                     value={selectedMediaCategory}
                     onChange={(e) => setSelectedMediaCategory(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-[#0c0c0c] border border-white/10 text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
                   >
-                    <option value="all" className="bg-[#0f0f0f] text-white">All Categories</option>
+                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories</option>
                     {categories.filter(c => ["photography", "video-editing", "graphic-design"].includes(c.slug)).map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                      <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
                     ))}
                   </select>
                 </div>
@@ -2071,7 +2087,7 @@ export default function AdminDashboardClient({
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase font-semibold">
+                    <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-4">Preview</th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
@@ -2081,7 +2097,7 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
+                  <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
                     {filteredMedia.map((m, idx) => {
                       const [vUrl, cUrl] = m.url.split("||");
                       const embedInfo = parseEmbedUrl(vUrl);
@@ -2089,13 +2105,13 @@ export default function AdminDashboardClient({
                       const thumbSrc = cUrl || embedInfo.thumbnailUrl || vUrl;
 
                       return (
-                        <tr key={m.id} className="hover:bg-white/[0.02] transition-colors">
+                        <tr key={m.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
                           <td className="py-3 px-4">
                             <a
                               href={vUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block w-12 h-8 rounded bg-zinc-950 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center relative group/thumb"
+                              className="block w-12 h-8 rounded bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center relative group/thumb"
                               title={isVideo ? "Click to watch video" : "Click to view media"}
                             >
                               {isVideo ? (
@@ -2122,21 +2138,21 @@ export default function AdminDashboardClient({
                               )}
                             </a>
                           </td>
-                          <td className="py-3 px-4 font-semibold text-white">{m.title}</td>
-                          <td className="py-3 px-4 text-zinc-400 font-semibold">{m.category?.name || "Uncategorized"}</td>
+                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{m.title}</td>
+                          <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400 font-semibold">{m.category?.name || "Uncategorized"}</td>
                           <td className="py-3 px-4">
                             <a
                               href={vUrl} target="_blank" rel="noopener noreferrer"
-                              className="text-xs text-violet-400 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate"
+                              className="text-xs text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate"
                             >
                               {vUrl} <ArrowUpRight className="w-3 h-3 flex-shrink-0" />
                             </a>
                           </td>
                           <td className="py-3 px-4">
                             {m.isFeatured ? (
-                              <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
+                              <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
                             ) : (
-                              <span className="text-[10px] font-semibold bg-zinc-500/10 border border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
+                              <span className="text-[10px] font-semibold bg-zinc-500/10 border border-zinc-200 dark:border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
                             )}
                           </td>
                           <td className="py-3 px-4 text-center">
@@ -2210,27 +2226,27 @@ export default function AdminDashboardClient({
               <form onSubmit={handleAddMedia} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Title *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Title *</label>
                     <input
                       type="text" required value={mediaTitle} onChange={e => setMediaTitle(e.target.value)}
                       placeholder="Cinematic Drone Reel or Event Poster"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Media File (Image/Video) *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Media File (Image/Video) *</label>
                     <div className="flex flex-col gap-3">
                       <input
                         type="text" required value={mediaUrl} onChange={e => setMediaUrl(e.target.value)}
                         placeholder="https://... or click upload"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                       <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                           {uploadingMediaUrl ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5 text-white" />
+                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                           )}
                           <span>Upload File</span>
                           <input
@@ -2247,7 +2263,7 @@ export default function AdminDashboardClient({
                             setOnSelectAsset(() => (url: string) => setMediaUrl(url));
                             setIsAssetPickerOpen(true);
                           }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
@@ -2256,19 +2272,19 @@ export default function AdminDashboardClient({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Cover Image / Thumbnail (Optional for YouTube/IG/Vimeo/Figma/TikTok)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Cover Image / Thumbnail (Optional for YouTube/IG/Vimeo/Figma/TikTok)</label>
                     <div className="flex flex-col gap-3">
                       <input
                         type="text" value={mediaCoverUrl} onChange={e => setMediaCoverUrl(e.target.value)}
                         placeholder="/uploads/cover.jpg or external thumbnail URL"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                       <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                           {uploadingMediaCover ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5 text-white" />
+                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                           )}
                           <span>Upload Cover</span>
                           <input
@@ -2285,7 +2301,7 @@ export default function AdminDashboardClient({
                             setOnSelectAsset(() => (url: string) => setMediaCoverUrl(url));
                             setIsAssetPickerOpen(true);
                           }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
@@ -2298,47 +2314,47 @@ export default function AdminDashboardClient({
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Category *</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Category *</label>
                       <select
                         value={mediaCatId} onChange={e => setMediaCatId(e.target.value)}
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-sm transition-all duration-200"
                       >
                         {categories.filter(c => ["photography", "video-editing", "graphic-design"].includes(c.slug)).map(cat => (
-                          <option key={cat.id} value={cat.id} className="bg-[#0f0f0f] text-white">{cat.name}</option>
+                          <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Short Description</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Short Description</label>
                       <input
                         type="text" value={mediaDesc} onChange={e => setMediaDesc(e.target.value)}
                         placeholder="Moody event shot or drone edit description"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
                     <input
                       type="number" value={mediaOrder} onChange={e => setMediaOrder(Number(e.target.value))}
                       placeholder="0"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
                   <div className="flex items-center gap-3 pt-4">
                     <input
                       type="checkbox" id="mediaFeaturedEdit" checked={mediaFeatured} onChange={e => setMediaFeatured(e.target.checked)}
-                      className="w-5 h-5 rounded accent-violet-600 bg-white/5 border border-white/10 focus:ring-0 cursor-pointer"
+                      className="w-5 h-5 rounded accent-violet-600 bg-white/5 border border-zinc-300 dark:border-white/10 focus:ring-0 cursor-pointer"
                     />
-                    <label htmlFor="mediaFeaturedEdit" className="text-sm font-semibold text-zinc-300 select-none cursor-pointer">
+                    <label htmlFor="mediaFeaturedEdit" className="text-sm font-semibold text-zinc-800 dark:text-zinc-300 select-none cursor-pointer">
                       Featured (Highlight in Creative Gallery)
                     </label>
                   </div>
 
                   <button
                     type="submit" disabled={loading}
-                    className="w-full mt-4 py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    className="w-full mt-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingMediaId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     {editingMediaId ? "Save Changes" : "Create Media Entry"}
@@ -2353,50 +2369,136 @@ export default function AdminDashboardClient({
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Profile & Bio</h1>
-                <p className="text-zinc-400 text-sm mt-1">View and manage your personal brand profile card</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Profile & Bio</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Live real-time preview of your personal brand identity and about story</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditingAbout(true)}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Edit2 className="w-4 h-4" />
                 Edit Profile
               </button>
             </div>
 
-            {/* Premium Profile Card */}
-            <div className="glass-card rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
-              {/* Profile Banner */}
-              <div className="h-32 sm:h-40 bg-gradient-to-r from-violet-900/40 via-purple-900/30 to-fuchsia-900/40 relative border-b border-white/5">
-                <div className="absolute inset-0 bg-grid-white/[0.02]" />
+            {/* Live Showcase / Hero Preview Card */}
+            <div className="glass-card rounded-3xl p-6 sm:p-8 border border-zinc-200/80 dark:border-white/5 shadow-xl relative overflow-hidden">
+              {/* Subtle background ambient glows */}
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-violet-500/[0.08] dark:bg-violet-500/[0.05] rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-fuchsia-500/[0.06] dark:bg-fuchsia-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+
+              {/* Card Header Indicator */}
+              <div className="flex items-center justify-between pb-5 mb-6 border-b border-zinc-200/80 dark:border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                    Frontend Preview &bull; About Section
+                  </span>
+                </div>
+                <span className="text-[11px] text-violet-600 dark:text-violet-400 font-semibold bg-violet-500/10 px-3 py-1 rounded-full border border-violet-500/20">
+                  Personal Brand Card
+                </span>
               </div>
 
-              {/* Profile details */}
-              <div className="px-6 pb-8 sm:px-8 relative flex flex-col sm:flex-row sm:items-end gap-6">
-                {/* Profile Photo as Avatar */}
-                <div className="relative -mt-16 sm:-mt-20 w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-[#030303] bg-zinc-900 shadow-2xl flex-shrink-0">
-                  <img
-                    src={aboutPhoto || "/uploads/default.jpg"}
-                    alt={aboutName}
-                    className="object-cover w-full h-full"
-                  />
+              {/* 2-Column Split Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* Left Column: Portrait & Quick Actions */}
+                <div className="lg:col-span-4 flex flex-col items-center sm:items-start text-center sm:text-left gap-4">
+                  <div className="relative group w-full max-w-[260px] aspect-[4/5] rounded-2xl overflow-hidden border-2 border-zinc-200 dark:border-white/10 shadow-xl bg-zinc-100 dark:bg-zinc-900 mx-auto sm:mx-0">
+                    <img
+                      src={aboutPhoto || "/uploads/default.jpg"}
+                      alt={aboutName}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+                    <div className="absolute bottom-3 left-3 right-3 text-left">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-300 block">
+                        Profile Portrait
+                      </span>
+                      <p className="text-xs font-bold text-white truncate">
+                        {aboutName || "Wardan Nugraha"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quick Stat Badges */}
+                  <div className="w-full max-w-[260px] grid grid-cols-3 gap-2 mx-auto sm:mx-0">
+                    <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/5 text-center">
+                      <span className="text-base font-extrabold text-zinc-950 dark:text-white block">{projects.length}</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-medium">Projects</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/5 text-center">
+                      <span className="text-base font-extrabold text-zinc-950 dark:text-white block">{skills.length}</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-medium">Skills</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/5 text-center">
+                      <span className="text-base font-extrabold text-zinc-950 dark:text-white block">{achievements.length}</span>
+                      <span className="text-[10px] text-zinc-500 uppercase font-medium">Certs</span>
+                    </div>
+                  </div>
+
+                  {/* Direct Edit Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingAbout(true)}
+                    className="w-full max-w-[260px] py-2.5 px-4 rounded-xl bg-zinc-200 hover:bg-zinc-300 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-200 font-semibold text-xs transition-colors flex items-center justify-center gap-2 border border-zinc-300 dark:border-white/5 cursor-pointer mx-auto sm:mx-0"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Ubah Foto & Data Bio</span>
+                  </button>
                 </div>
 
-                {/* Name & Bio section */}
-                <div className="flex-1 space-y-2 pt-2 sm:pt-0">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{aboutName}</h2>
-                  <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Dynamic About Me Bio</p>
-                </div>
-              </div>
+                {/* Right Column: Identity Story & Full Bio Narrative */}
+                <div className="lg:col-span-8 flex flex-col gap-5">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                      Identity Story
+                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 dark:text-white tracking-tight">
+                        {aboutName || "Wardan Nugraha Ahmad"}
+                      </h2>
+                      <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm" title="Verified Personal Brand">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-medium mt-1">
+                      Creative Technologist & Visual Storyteller &bull; Portfolio Bio
+                    </p>
+                  </div>
 
-              {/* Bio Narrative Block */}
-              <div className="px-6 pb-8 sm:px-8 pt-4 border-t border-white/5 bg-white/[0.01]">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">About Narrative</h3>
-                <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                  {aboutMe || "No bio description set yet. Click Edit Profile to add one."}
-                </p>
+                  {/* Bio Narrative Box */}
+                  <div className="p-6 rounded-2xl bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200/80 dark:border-white/5 shadow-inner">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
+                      About Narrative (Bio Deskripsi)
+                    </h3>
+                    <p className="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed whitespace-pre-line font-light">
+                      {aboutMe || "Belum ada deskripsi bio. Klik tombol 'Edit Profile' untuk menambahkan cerita pengalaman dan narasi personal brand Anda."}
+                    </p>
+                  </div>
+
+                  {/* Quick Contact & Footer Preview */}
+                  {contactLinks.length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] uppercase font-semibold text-zinc-500 block mb-2">
+                        Connected Channels:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {contactLinks.slice(0, 4).map((c, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-zinc-200/80 dark:bg-white/5 text-zinc-800 dark:text-zinc-300 border border-zinc-300 dark:border-white/10"
+                          >
+                            <span className="text-[11px]">🔗</span>
+                            <span>{c.label}</span>
+                            {c.username && <span className="text-zinc-400 font-normal">({c.username})</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2411,32 +2513,32 @@ export default function AdminDashboardClient({
                 setIsEditingAbout(false);
               }} className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
                     Display Name *
                   </label>
                   <input
                     type="text" required value={aboutName} onChange={e => setAboutName(e.target.value)}
                     placeholder="Wardan Nugraha Ahmad"
-                    className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                    className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
                     Profile Photo *
                   </label>
                   <div className="flex flex-col gap-3">
                     <input
                       type="text" required value={aboutPhoto} onChange={e => setAboutPhoto(e.target.value)}
                       placeholder="/uploads/portrait.jpg or external https:// url"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <div className="flex gap-2">
-                      <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                      <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                         {uploadingAboutPhoto ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                         ) : (
-                          <Plus className="w-3.5 h-3.5 text-white" />
+                          <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                         )}
                         <span>Upload Photo</span>
                         <input
@@ -2453,7 +2555,7 @@ export default function AdminDashboardClient({
                           setOnSelectAsset(() => (url: string) => setAboutPhoto(url));
                           setIsAssetPickerOpen(true);
                         }}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5" />
                         <span>Pilih Galeri</span>
@@ -2463,7 +2565,7 @@ export default function AdminDashboardClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
                     Bio Description *
                   </label>
                   <textarea
@@ -2472,14 +2574,14 @@ export default function AdminDashboardClient({
                     value={aboutMe}
                     onChange={(e) => setAboutMe(e.target.value)}
                     placeholder="Enter your personal brand narrative..."
-                    className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm leading-relaxed transition-all duration-200"
+                    className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm leading-relaxed transition-all duration-200"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={updatingAbout}
-                  className="w-full py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                 >
                   {updatingAbout ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -2497,8 +2599,8 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Expertise Skills</h1>
-                <p className="text-zinc-400 text-sm mt-1">Create, update and remove visual rating indicators for your tech & soft skills</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Expertise Skills</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Create, update and remove visual rating indicators for your tech & soft skills</p>
               </div>
               <button
                 type="button"
@@ -2507,7 +2609,7 @@ export default function AdminDashboardClient({
                   setEditingSkillId(null);
                   setIsSkillModalOpen(true);
                 }}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Add Skill
@@ -2515,31 +2617,31 @@ export default function AdminDashboardClient({
             </div>
 
             {/* Collapsible Categories Ordering */}
-            <div className="glass-card rounded-3xl border border-white/5 overflow-hidden">
+            <div className="glass-card rounded-3xl border border-zinc-200/80 dark:border-white/5 overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsCatManagerOpen(!isCatManagerOpen)}
-                className="w-full flex items-center justify-between p-6 text-left text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.01] transition-colors"
+                className="w-full flex items-center justify-between p-6 text-left text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100/50 dark:hover:bg-white/[0.01] transition-colors cursor-pointer"
               >
                 <span className="flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-violet-400" />
+                  <Sliders className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                   Manage Skill Categories & Ordering
                 </span>
                 <span className="text-zinc-500 text-xs">{isCatManagerOpen ? "▲ Hide Manager" : "▼ Expand Manager"}</span>
               </button>
               {isCatManagerOpen && (
-                <div className="p-6 border-t border-white/5 bg-zinc-950/40">
-                  <span className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Category Order (Left-to-Right layout)</span>
-                  <div className="divide-y divide-white/5">
+                <div className="p-6 border-t border-zinc-200 dark:border-white/5 bg-zinc-100/40 dark:bg-zinc-950/40">
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-3">Category Order (Left-to-Right layout)</span>
+                  <div className="divide-y divide-zinc-200 dark:divide-white/5">
                     {customCategories.map((catName, index) => (
                       <div key={catName} className="py-2.5 flex items-center justify-between text-sm">
-                        <span className="font-semibold text-white">{catName}</span>
+                        <span className="font-semibold text-zinc-900 dark:text-white">{catName}</span>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
                             disabled={index === 0}
                             onClick={() => handleMoveCategory(index, "up")}
-                            className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 cursor-pointer text-xs"
+                            className="p-1.5 rounded bg-zinc-200 dark:bg-white/5 hover:bg-zinc-300 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white disabled:opacity-30 cursor-pointer text-xs transition-colors"
                             title="Move Left"
                           >
                             ← Move Left
@@ -2548,7 +2650,7 @@ export default function AdminDashboardClient({
                             type="button"
                             disabled={index === customCategories.length - 1}
                             onClick={() => handleMoveCategory(index, "down")}
-                            className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 cursor-pointer text-xs"
+                            className="p-1.5 rounded bg-zinc-200 dark:bg-white/5 hover:bg-zinc-300 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white disabled:opacity-30 cursor-pointer text-xs transition-colors"
                             title="Move Right"
                           >
                             Move Right →
@@ -2556,7 +2658,7 @@ export default function AdminDashboardClient({
                           <button
                             type="button"
                             onClick={() => handleDeleteCategory(catName)}
-                            className="p-1.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 cursor-pointer ml-2 text-xs"
+                            className="p-1.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 cursor-pointer ml-2 text-xs transition-colors"
                             title="Delete Category"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2570,12 +2672,12 @@ export default function AdminDashboardClient({
             </div>
 
             {/* Skills Table List */}
-            <div className="glass-card rounded-3xl p-6 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-6">Current Skills ({skills.length})</h2>
+            <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
+              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Skills ({skills.length})</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase font-semibold">
+                    <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-4">Name</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Rating Visual</th>
@@ -2583,17 +2685,17 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
+                  <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
                     {skills.map((s, idx) => (
-                      <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-white">{s.name}</td>
-                        <td className="py-3 px-4 text-zinc-400">{s.category}</td>
+                      <tr key={s.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{s.name}</td>
+                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{s.category}</td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-24 bg-white/5 h-2 rounded-full overflow-hidden">
+                            <div className="w-24 bg-zinc-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
                               <div className="bg-violet-500 h-full" style={{ width: `${s.level || 50}%` }} />
                             </div>
-                            <span className="text-xs text-zinc-400 font-semibold">{s.level || "50"}%</span>
+                            <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">{s.level || "50"}%</span>
                           </div>
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -2602,17 +2704,17 @@ export default function AdminDashboardClient({
                               type="button"
                               onClick={() => handleMoveItem("skills", s.id, "up")}
                               disabled={idx === 0}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Naik"
                             >
                               <ChevronUp className="w-4 h-4" />
                             </button>
-                            <span className="text-xs font-mono w-6 text-center">{s.order || 0}</span>
+                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{s.order || 0}</span>
                             <button
                               type="button"
                               onClick={() => handleMoveItem("skills", s.id, "down")}
                               disabled={idx === skills.length - 1}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
                               <ChevronDown className="w-4 h-4" />
@@ -2629,14 +2731,14 @@ export default function AdminDashboardClient({
                               setSkillOrder(s.order || 0);
                               setIsSkillModalOpen(true);
                             }}
-                            className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteSkill(s.id)}
-                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2662,23 +2764,23 @@ export default function AdminDashboardClient({
               <form onSubmit={handleAddSkill} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Skill Name *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Skill Name *</label>
                     <input
                       type="text" required value={skillName} onChange={e => setSkillName(e.target.value)}
                       placeholder="React.js, Public Speaking, English, etc."
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Category *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Category *</label>
                     <select
                       value={skillCategory} onChange={e => setSkillCategory(e.target.value)}
-                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-sm transition-all duration-200"
                     >
                       {customCategories.map(cat => (
-                        <option key={cat} value={cat} className="bg-[#0f0f0f] text-white">{cat}</option>
+                        <option key={cat} value={cat} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat}</option>
                       ))}
-                      <option value="__ADD_NEW__" className="bg-[#0f0f0f] text-white">+ Add New Category...</option>
+                      <option value="__ADD_NEW__" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">+ Add New Category...</option>
                     </select>
 
                     {skillCategory === "__ADD_NEW__" && (
@@ -2688,7 +2790,7 @@ export default function AdminDashboardClient({
                           placeholder="New category name..."
                           value={newCategoryName}
                           onChange={e => setNewCategoryName(e.target.value)}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                         />
                         <button
                           type="button"
@@ -2715,7 +2817,7 @@ export default function AdminDashboardClient({
                             setSkillCategory(customCategories[0] || "");
                             setNewCategoryName("");
                           }}
-                          className="px-3 py-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-xl text-xs cursor-pointer transition-colors border border-white/5"
+                          className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white rounded-xl text-xs cursor-pointer transition-colors border border-zinc-200 dark:border-white/5"
                         >
                           Cancel
                         </button>
@@ -2726,34 +2828,34 @@ export default function AdminDashboardClient({
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
-                      Expertise Rating: <span className="text-violet-400 font-bold">{skillLevel}%</span>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
+                      Expertise Rating: <span className="text-violet-600 dark:text-violet-400 font-bold">{skillLevel}%</span>
                     </label>
                     <div className="flex items-center gap-4 py-2">
                       <input
                         type="range" min="10" max="100" step="5"
                         value={skillLevel} onChange={e => setSkillLevel(Number(e.target.value))}
-                        className="flex-1 accent-violet-500 h-1 bg-white/10 rounded-lg cursor-pointer"
+                        className="flex-1 accent-violet-500 h-1.5 bg-zinc-200 dark:bg-white/10 rounded-lg cursor-pointer"
                       />
-                      <div className="w-16 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 shadow-inner">
-                        <span className="text-xs font-semibold text-white">{skillLevel}%</span>
+                      <div className="w-16 h-10 rounded-xl bg-zinc-100 dark:bg-white/5 flex items-center justify-center border border-zinc-200 dark:border-white/10 shadow-inner">
+                        <span className="text-xs font-semibold text-zinc-900 dark:text-white">{skillLevel}%</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
                     <input
                       type="number" value={skillOrder} onChange={e => setSkillOrder(Number(e.target.value))}
                       placeholder="0"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
 
                   <button
                     type="submit" disabled={loading}
-                    className="w-full mt-4 py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    className="w-full mt-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingSkillId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     {editingSkillId ? "Save Changes" : "Create Skill Entry"}
@@ -2768,8 +2870,8 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Credentials & Prestasi</h1>
-                <p className="text-zinc-400 text-sm mt-1">Manage certifications, awards, and licenses shown under Academic & Professional Credentials</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Credentials & Prestasi</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Manage certifications, awards, and licenses shown under Academic & Professional Credentials</p>
               </div>
               <button
                 type="button"
@@ -2778,7 +2880,7 @@ export default function AdminDashboardClient({
                   setEditingAchId(null);
                   setIsAchModalOpen(true);
                 }}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Add Credential
@@ -2786,12 +2888,12 @@ export default function AdminDashboardClient({
             </div>
 
             {/* List */}
-            <div className="glass-card rounded-3xl p-6 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-6">Current Credentials ({achievements.length})</h2>
+            <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
+              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Credentials ({achievements.length})</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase font-semibold">
+                    <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Issuer</th>
                       <th className="py-3 px-4">Date</th>
@@ -2799,12 +2901,12 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
+                  <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
                     {achievements.map((a, idx) => (
-                      <tr key={a.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-white">{a.title}</td>
-                        <td className="py-3 px-4 text-zinc-400">{a.issuer}</td>
-                        <td className="py-3 px-4 text-zinc-500">
+                      <tr key={a.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{a.title}</td>
+                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{a.issuer}</td>
+                        <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">
                           {a.date ? new Date(a.date).toLocaleDateString("id-ID", { year: "numeric", month: "short" }) : "N/A"}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -2813,17 +2915,17 @@ export default function AdminDashboardClient({
                               type="button"
                               onClick={() => handleMoveItem("achievements", a.id, "up")}
                               disabled={idx === 0}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Naik"
                             >
                               <ChevronUp className="w-4 h-4" />
                             </button>
-                            <span className="text-xs font-mono w-6 text-center">{a.order || 0}</span>
+                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{a.order || 0}</span>
                             <button
                               type="button"
                               onClick={() => handleMoveItem("achievements", a.id, "down")}
                               disabled={idx === achievements.length - 1}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
                               <ChevronDown className="w-4 h-4" />
@@ -2852,14 +2954,14 @@ export default function AdminDashboardClient({
                               setAchLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
                               setIsAchModalOpen(true);
                             }}
-                            className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteAchievement(a.id)}
-                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2885,62 +2987,62 @@ export default function AdminDashboardClient({
               <form onSubmit={handleAddAchievement} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Title *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Title *</label>
                     <input
                       type="text" required value={achTitle} onChange={e => setAchTitle(e.target.value)}
                       placeholder="Advanced Next.js Developer"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Issuer / Organization *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Issuer / Organization *</label>
                     <input
                       type="text" required value={achIssuer} onChange={e => setAchIssuer(e.target.value)}
                       placeholder="Vercel"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Issue Date</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Issue Date</label>
                       <input
                         type="date" value={achDate} onChange={e => setAchDate(e.target.value)}
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-sm transition-all duration-200"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Short Description</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Short Description</label>
                       <input
                         type="text" value={achDesc} onChange={e => setAchDesc(e.target.value)}
                         placeholder="Verified competence..."
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
                     <input
                       type="number" value={achOrder} onChange={e => setAchOrder(Number(e.target.value))}
                       placeholder="0"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
                   {/* Certificate Image Field with file upload selector */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Certificate Image / Photo (Optional)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Certificate Image / Photo (Optional)</label>
                     <div className="flex flex-col gap-3">
                       <input
                         type="text" value={achImage} onChange={e => setAchImage(e.target.value)}
                         placeholder="/uploads/cert1.jpg or external url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                       <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                           {uploadingAchImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5 text-white" />
+                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                           )}
                           <span>Upload File</span>
                           <input
@@ -2957,7 +3059,7 @@ export default function AdminDashboardClient({
                             setOnSelectAsset(() => (url: string) => setAchImage(url));
                             setIsAssetPickerOpen(true);
                           }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
@@ -2971,9 +3073,9 @@ export default function AdminDashboardClient({
                   {/* Markdown Editor Toolbar */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Rich Content / Details Page Markdown</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Content / Details Page Markdown</label>
                       <div className="flex gap-3">
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
@@ -2997,7 +3099,7 @@ export default function AdminDashboardClient({
                             });
                             setIsAssetPickerOpen(true);
                           }}
-                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
                         >
                           <Camera className="w-3 h-3" />
                           <span>Pilih Galeri</span>
@@ -3005,7 +3107,7 @@ export default function AdminDashboardClient({
                       </div>
                     </div>
                     <div className="flex flex-col">
-                      <div className="flex flex-wrap gap-1 p-1.5 bg-white/5 border border-white/10 rounded-t-xl">
+                      <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
                         <button
                           type="button"
                           onClick={() => {
@@ -3021,7 +3123,7 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Image Link"
                         >
                           <Image className="w-3 h-3" />
@@ -3043,7 +3145,7 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Video or Figma Embed"
                         >
                           <Video className="w-3 h-3" />
@@ -3064,14 +3166,14 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Text Link"
                         >
                           <Link className="w-3 h-3" />
                           <span className="hidden sm:inline">Link</span>
                         </button>
 
-                        <div className="w-px h-4 bg-white/10 mx-1 align-self-center" />
+                        <div className="w-px h-4 bg-zinc-300 dark:bg-white/10 mx-1 align-self-center" />
 
                         <button
                           type="button"
@@ -3090,7 +3192,7 @@ export default function AdminDashboardClient({
                               insertAtAchCursor(`**Bold Text**`);
                             }
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                           title="Bold text"
                         >
                           <Bold className="w-3 h-3" />
@@ -3113,7 +3215,7 @@ export default function AdminDashboardClient({
                               insertAtAchCursor(`*Italic Text*`);
                             }
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center italic"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center italic cursor-pointer"
                           title="Italic text"
                         >
                           <Italic className="w-3 h-3" />
@@ -3124,7 +3226,7 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtAchCursor(`\n### `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                           title="Heading 3"
                         >
                           <Heading className="w-3 h-3" />
@@ -3135,7 +3237,7 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtAchCursor(`\n- `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                           title="Bullet List"
                         >
                           <List className="w-3 h-3" />
@@ -3146,7 +3248,7 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtAchCursor(`\n> `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                           title="Quote"
                         >
                           <Quote className="w-3 h-3" />
@@ -3157,16 +3259,16 @@ export default function AdminDashboardClient({
                         ref={achContentRef}
                         rows={8} value={achContent} onChange={e => setAchContent(e.target.value)}
                         placeholder="Detailed certification history, verified competence, markdown story, or images..."
-                        className="w-full px-5 py-3.5 rounded-b-xl bg-white/5 border border-white/10 border-t-0 focus:border-violet-500 outline-none text-white text-sm transition-all duration-200 resize-y"
+                        className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Achievement Dynamic Links Builder */}
-                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-white/10">
+                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-zinc-200 dark:border-white/10">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Credential Action Links ({achLinks.length})</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Credential Action Links ({achLinks.length})</label>
                     <button
                       type="button"
                       onClick={() => setAchLinks([...achLinks, { label: "", url: "", icon: "link" }])}
@@ -3182,7 +3284,7 @@ export default function AdminDashboardClient({
                   ) : (
                     <div className="space-y-4">
                       {achLinks.map((link, idx) => (
-                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-100/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/5 shadow-inner">
                           <div className="flex-1 w-full">
                             <input
                               type="text"
@@ -3194,7 +3296,7 @@ export default function AdminDashboardClient({
                                 updated[idx].label = e.target.value;
                                 setAchLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="flex-1 w-full">
@@ -3216,7 +3318,7 @@ export default function AdminDashboardClient({
                                 }
                                 setAchLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="w-full sm:w-auto">
@@ -3227,14 +3329,14 @@ export default function AdminDashboardClient({
                                 updated[idx].icon = e.target.value;
                                 setAchLinks(updated);
                               }}
-                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-xs transition-all duration-200"
                             >
-                              <option value="link" className="bg-[#0f0f0f] text-white">🌐 Link (Default)</option>
-                              <option value="github" className="bg-[#0f0f0f] text-white">💻 GitHub</option>
-                              <option value="camera" className="bg-[#0f0f0f] text-white">📸 Galeri Foto</option>
-                              <option value="video" className="bg-[#0f0f0f] text-white">🎥 Video Reel</option>
-                              <option value="file" className="bg-[#0f0f0f] text-white">📄 Dokumen / Jurnal</option>
-                              <option value="layout" className="bg-[#0f0f0f] text-white">🎨 Desain / UI/UX</option>
+                              <option value="link" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🌐 Link (Default)</option>
+                              <option value="github" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💻 GitHub</option>
+                              <option value="camera" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📸 Galeri Foto</option>
+                              <option value="video" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎥 Video Reel</option>
+                              <option value="file" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📄 Dokumen / Jurnal</option>
+                              <option value="layout" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎨 Desain / UI/UX</option>
                             </select>
                           </div>
                           <button
@@ -3242,7 +3344,7 @@ export default function AdminDashboardClient({
                             onClick={() => {
                               setAchLinks(achLinks.filter((_, i) => i !== idx));
                             }}
-                            className="p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
+                            className="p-2.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
                             title="Delete Link"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3253,10 +3355,10 @@ export default function AdminDashboardClient({
                   )}
                 </div>
 
-                <div className="lg:col-span-2 pt-4 border-t border-white/10">
+                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/10">
                   <button
                     type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingAchId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     {editingAchId ? "Save Changes" : "Create Credential Entry"}
@@ -3271,8 +3373,8 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Community & Leadership</h1>
-                <p className="text-zinc-400 text-sm mt-1">Manage debate tournaments, literacy ambassador experience, and leadership roles</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Community & Leadership</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Manage debate tournaments, literacy ambassador experience, and leadership roles</p>
               </div>
               <button
                 type="button"
@@ -3281,7 +3383,7 @@ export default function AdminDashboardClient({
                   setEditingCommId(null);
                   setIsCommModalOpen(true);
                 }}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Add Activity
@@ -3289,12 +3391,12 @@ export default function AdminDashboardClient({
             </div>
 
             {/* List */}
-            <div className="glass-card rounded-3xl p-6 border border-white/5">
-              <h2 className="text-lg font-bold text-white mb-6">Current Activities ({community.length})</h2>
+            <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
+              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Activities ({community.length})</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase font-semibold">
+                    <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Organization</th>
@@ -3303,30 +3405,30 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
+                  <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
                     {community.map((c, idx) => (
-                      <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-white">{c.title}</td>
-                        <td className="py-3 px-4 text-zinc-400">{c.role}</td>
-                        <td className="py-3 px-4 text-zinc-400">{c.organization}</td>
-                        <td className="py-3 px-4 text-zinc-500">{c.dateRange}</td>
+                      <tr key={c.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{c.title}</td>
+                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{c.role}</td>
+                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{c.organization}</td>
+                        <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">{c.dateRange}</td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <button
                               type="button"
                               onClick={() => handleMoveItem("community", c.id, "up")}
                               disabled={idx === 0}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Naik"
                             >
                               <ChevronUp className="w-4 h-4" />
                             </button>
-                            <span className="text-xs font-mono w-6 text-center">{c.order || 0}</span>
+                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{c.order || 0}</span>
                             <button
                               type="button"
                               onClick={() => handleMoveItem("community", c.id, "down")}
                               disabled={idx === community.length - 1}
-                              className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
                               <ChevronDown className="w-4 h-4" />
@@ -3356,14 +3458,14 @@ export default function AdminDashboardClient({
                               setCommLinks(parsedLinks);
                               setIsCommModalOpen(true);
                             }}
-                            className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteCommunity(c.id)}
-                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3389,61 +3491,61 @@ export default function AdminDashboardClient({
               <form onSubmit={handleAddCommunity} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Title *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Title *</label>
                     <input
                       type="text" required value={commTitle} onChange={e => setCommTitle(e.target.value)}
                       placeholder="Law Debate Competition or West Java Literacy Ambassador"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Role *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Role *</label>
                     <input
                       type="text" required value={commRole} onChange={e => setCommRole(e.target.value)}
                       placeholder="1st Place Winner or Duta Baca Finalist"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Organization *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Organization *</label>
                     <input
                       type="text" required value={commOrg} onChange={e => setCommOrg(e.target.value)}
                       placeholder="Provincial Library & Archives Office"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Date / Year Range *</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Date / Year Range *</label>
                     <input
                       type="text" required value={commDateRange} onChange={e => setCommDateRange(e.target.value)}
                       placeholder="2023 - 2024 or 2024"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Order (Urutan Tampilan)</label>
                     <input
                       type="number" value={commOrder} onChange={e => setCommOrder(Number(e.target.value))}
                       placeholder="0"
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
                   {/* Image field */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Activity Image / Certificate Photo (Optional)</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Activity Image / Certificate Photo (Optional)</label>
                     <div className="flex flex-col gap-3">
                       <input
                         type="text" value={commImage} onChange={e => setCommImage(e.target.value)}
                         placeholder="/uploads/activity1.jpg or external url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                       />
                       <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-white/5">
+                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
                           {uploadingCommImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5 text-white" />
+                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
                           )}
                           <span>Upload File</span>
                           <input
@@ -3460,7 +3562,7 @@ export default function AdminDashboardClient({
                             setOnSelectAsset(() => (url: string) => setCommImage(url));
                             setIsAssetPickerOpen(true);
                           }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs tracking-wider uppercase border border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
@@ -3472,19 +3574,19 @@ export default function AdminDashboardClient({
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Short Description</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Short Description</label>
                     <textarea
                       rows={3} value={commDesc} onChange={e => setCommDesc(e.target.value)}
                       placeholder="Detailed responsibilities, achievements, and impact..."
-                      className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
+                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
                     />
                   </div>
                   {/* Rich Content Markdown Editor */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Rich Content / Details Page Markdown</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Content / Details Page Markdown</label>
                       <div className="flex gap-3">
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
@@ -3508,15 +3610,15 @@ export default function AdminDashboardClient({
                             });
                             setIsAssetPickerOpen(true);
                           }}
-                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
+                          className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <Camera className="w-3 h-3" />
+                          <Camera className="w-3.5 h-3.5" />
                           <span>Pilih Galeri</span>
                         </button>
                       </div>
                     </div>
                     <div className="flex flex-col">
-                      <div className="flex flex-wrap gap-1 p-1.5 bg-white/5 border border-white/10 rounded-t-xl">
+                      <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
                         <button
                           type="button"
                           onClick={() => {
@@ -3532,10 +3634,10 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Image Link"
                         >
-                          <Image className="w-3 h-3" />
+                          <Image className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Image</span>
                         </button>
 
@@ -3554,10 +3656,10 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Video or Figma Embed"
                         >
-                          <Video className="w-3 h-3" />
+                          <Video className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Embed</span>
                         </button>
 
@@ -3575,22 +3677,24 @@ export default function AdminDashboardClient({
                               }
                             );
                           }}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                          className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                           title="Insert Text Link"
                         >
-                          <Link className="w-3 h-3" />
+                          <Link className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Link</span>
                         </button>
+
+                        <div className="w-px h-4 bg-zinc-300 dark:bg-white/10 mx-1 align-self-center" />
 
                         <button
                           type="button"
                           onClick={() => {
                             insertAtCommCursor(`\n**bold text**`);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                           title="Bold Text"
                         >
-                          <Bold className="w-3 h-3" />
+                          <Bold className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -3598,10 +3702,10 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtCommCursor(`\n*italic text*`);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center italic"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center italic cursor-pointer"
                           title="Italic Text"
                         >
-                          <Italic className="w-3 h-3" />
+                          <Italic className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -3609,7 +3713,7 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtCommCursor(`\n## `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                           title="Heading 2"
                         >
                           <Heading className="w-3.5 h-3.5" />
@@ -3620,10 +3724,10 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtCommCursor(`\n### `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center font-bold"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
                           title="Heading 3"
                         >
-                          <Heading className="w-3 h-3" />
+                          <Heading className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -3631,10 +3735,10 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtCommCursor(`\n- `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                           title="Bullet List"
                         >
-                          <List className="w-3 h-3" />
+                          <List className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -3642,10 +3746,10 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             insertAtCommCursor(`\n> `);
                           }}
-                          className="p-1 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
                           title="Quote"
                         >
-                          <Quote className="w-3 h-3" />
+                          <Quote className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
@@ -3653,16 +3757,16 @@ export default function AdminDashboardClient({
                         ref={commContentRef}
                         rows={8} value={commContent} onChange={e => setCommContent(e.target.value)}
                         placeholder="Detailed activity history, certificates, stories, or achievements..."
-                        className="w-full px-5 py-3.5 rounded-b-xl bg-white/5 border border-white/10 border-t-0 focus:border-violet-500 outline-none text-white text-sm transition-all duration-200 resize-y"
+                        className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Community Dynamic Links Builder */}
-                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-white/10">
+                <div className="lg:col-span-2 space-y-4 pt-6 border-t border-zinc-200 dark:border-white/10">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Activity Action Links ({commLinks.length})</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Activity Action Links ({commLinks.length})</label>
                     <button
                       type="button"
                       onClick={() => setCommLinks([...commLinks, { label: "", url: "", icon: "link" }])}
@@ -3678,7 +3782,7 @@ export default function AdminDashboardClient({
                   ) : (
                     <div className="space-y-4">
                       {commLinks.map((link, idx) => (
-                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-100/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/5 shadow-inner">
                           <div className="flex-1 w-full">
                             <input
                               type="text"
@@ -3690,7 +3794,7 @@ export default function AdminDashboardClient({
                                 updated[idx].label = e.target.value;
                                 setCommLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="flex-1 w-full">
@@ -3712,7 +3816,7 @@ export default function AdminDashboardClient({
                                 }
                                 setCommLinks(updated);
                               }}
-                              className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
                             />
                           </div>
                           <div className="w-full sm:w-auto">
@@ -3723,14 +3827,14 @@ export default function AdminDashboardClient({
                                 updated[idx].icon = e.target.value;
                                 setCommLinks(updated);
                               }}
-                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                              className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 text-zinc-900 dark:text-white text-xs transition-all duration-200"
                             >
-                              <option value="link" className="bg-[#0f0f0f] text-white">🌐 Link (Default)</option>
-                              <option value="github" className="bg-[#0f0f0f] text-white">💻 GitHub</option>
-                              <option value="camera" className="bg-[#0f0f0f] text-white">📸 Galeri Foto</option>
-                              <option value="video" className="bg-[#0f0f0f] text-white">🎥 Video Reel</option>
-                              <option value="file" className="bg-[#0f0f0f] text-white">📄 Dokumen / Jurnal</option>
-                              <option value="layout" className="bg-[#0f0f0f] text-white">🎨 Desain / UI/UX</option>
+                              <option value="link" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🌐 Link (Default)</option>
+                              <option value="github" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💻 GitHub</option>
+                              <option value="camera" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📸 Galeri Foto</option>
+                              <option value="video" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎥 Video Reel</option>
+                              <option value="file" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📄 Dokumen / Jurnal</option>
+                              <option value="layout" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎨 Desain / UI/UX</option>
                             </select>
                           </div>
                           <button
@@ -3738,7 +3842,7 @@ export default function AdminDashboardClient({
                             onClick={() => {
                               setCommLinks(commLinks.filter((_, i) => i !== idx));
                             }}
-                            className="p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
+                            className="p-2.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
                             title="Delete Link"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3749,10 +3853,10 @@ export default function AdminDashboardClient({
                   )}
                 </div>
 
-                <div className="lg:col-span-2 pt-4 border-t border-white/10">
+                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/10">
                   <button
                     type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingCommId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     {editingCommId ? "Save Changes" : "Create Activity Entry"}
@@ -3767,32 +3871,32 @@ export default function AdminDashboardClient({
           <div className="space-y-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Contact & Social Links</h1>
-                <p className="text-zinc-400 text-sm mt-1">Configure email, WhatsApp, LinkedIn, GitHub, and other contact links shown in the footer</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white">Manage Contact & Social Links</h1>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Configure email, WhatsApp, LinkedIn, GitHub, and other contact links shown in the footer</p>
               </div>
               <button
                 type="button"
                 onClick={() => setContactLinks([...contactLinks, { label: "", url: "", icon: "link", username: "" }])}
-                className="px-5 py-3 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+                className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 Add Contact Link
               </button>
             </div>
 
-            <form onSubmit={handleSaveContactLinks} className="glass-card rounded-3xl p-6 border border-white/5 space-y-6">
-              <h2 className="text-lg font-bold text-white mb-4">Current Contact Links ({contactLinks.length})</h2>
+            <form onSubmit={handleSaveContactLinks} className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5 space-y-6">
+              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-4">Current Contact Links ({contactLinks.length})</h2>
 
               {contactLinks.length === 0 ? (
-                <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl">
+                <div className="py-12 text-center border border-dashed border-zinc-300 dark:border-white/10 rounded-2xl">
                   <p className="text-zinc-500 text-sm font-light">No contact or social links added yet. Click "Add Contact Link" to start.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {contactLinks.map((link, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/[0.02] p-4 rounded-2xl border border-white/5 shadow-inner">
+                    <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-100/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/5 shadow-inner">
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Label</label>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">Label</label>
                         <input
                           type="text"
                           required
@@ -3803,11 +3907,11 @@ export default function AdminDashboardClient({
                             updated[idx].label = e.target.value;
                             setContactLinks(updated);
                           }}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                         />
                       </div>
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">URL (Link)</label>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">URL (Link)</label>
                         <input
                           type="text"
                           required
@@ -3827,11 +3931,11 @@ export default function AdminDashboardClient({
                             }
                             setContactLinks(updated);
                           }}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                         />
                       </div>
                       <div className="flex-1 w-full">
-                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Username / Value (Optional)</label>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">Username / Value (Optional)</label>
                         <input
                           type="text"
                           placeholder="e.g. @wardannugraha, +62 8..."
@@ -3841,11 +3945,11 @@ export default function AdminDashboardClient({
                             updated[idx].username = e.target.value;
                             setContactLinks(updated);
                           }}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                         />
                       </div>
                       <div className="w-full sm:w-auto">
-                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Icon type</label>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">Icon type</label>
                         <select
                           value={link.icon}
                           onChange={(e) => {
@@ -3853,14 +3957,14 @@ export default function AdminDashboardClient({
                             updated[idx].icon = e.target.value;
                             setContactLinks(updated);
                           }}
-                          className="w-full sm:w-44 px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                          className="w-full sm:w-44 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                         >
-                          <option value="mail" className="bg-[#0f0f0f] text-white">✉️ Email (mail)</option>
-                          <option value="phone" className="bg-[#0f0f0f] text-white">📞 WhatsApp / Phone (phone)</option>
-                          <option value="linkedin" className="bg-[#0f0f0f] text-white">💼 LinkedIn (linkedin)</option>
-                          <option value="github" className="bg-[#0f0f0f] text-white">💻 GitHub (github)</option>
-                          <option value="instagram" className="bg-[#0f0f0f] text-white">📸 Instagram (instagram)</option>
-                          <option value="globe" className="bg-[#0f0f0f] text-white">🌐 Website (globe)</option>
+                          <option value="mail" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">✉️ Email (mail)</option>
+                          <option value="phone" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📞 WhatsApp / Phone (phone)</option>
+                          <option value="linkedin" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💼 LinkedIn (linkedin)</option>
+                          <option value="github" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💻 GitHub (github)</option>
+                          <option value="instagram" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📸 Instagram (instagram)</option>
+                          <option value="globe" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🌐 Website (globe)</option>
                         </select>
                       </div>
                       <div className="pt-4 sm:pt-5 flex items-center gap-1">
@@ -3868,7 +3972,7 @@ export default function AdminDashboardClient({
                           type="button"
                           disabled={idx === 0}
                           onClick={() => handleMoveContactLink(idx, "up")}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                          className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-xl disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-colors"
                           title="Move Up (Left)"
                         >
                           <ChevronUp className="w-4 h-4" />
@@ -3877,7 +3981,7 @@ export default function AdminDashboardClient({
                           type="button"
                           disabled={idx === contactLinks.length - 1}
                           onClick={() => handleMoveContactLink(idx, "down")}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                          className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-xl disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer transition-colors"
                           title="Move Down (Right)"
                         >
                           <ChevronDown className="w-4 h-4" />
@@ -3887,7 +3991,7 @@ export default function AdminDashboardClient({
                           onClick={() => {
                             setContactLinks(contactLinks.filter((_, i) => i !== idx));
                           }}
-                          className="p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
+                          className="p-2.5 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors flex-shrink-0"
                           title="Delete Link"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -3898,10 +4002,10 @@ export default function AdminDashboardClient({
                 </div>
               )}
 
-              <div className="pt-6 border-t border-white/10">
+              <div className="pt-6 border-t border-zinc-200 dark:border-white/10">
                 <button
                   type="submit" disabled={loading}
-                  className="w-full py-3.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   <span>Save Contact Links</span>
@@ -3917,14 +4021,14 @@ export default function AdminDashboardClient({
           title="Select Existing Photo"
         >
           <div className="space-y-4">
-            <p className="text-xs text-zinc-400">Choose a photo from files you have previously uploaded to save storage space.</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">Choose a photo from files you have previously uploaded to save storage space.</p>
             {isLoadingAssets && galleryAssets.length === 0 ? (
               <div className="py-8 flex justify-center items-center gap-2 text-zinc-500 text-xs">
-                <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
                 <span>Loading assets...</span>
               </div>
             ) : galleryAssets.length === 0 ? (
-              <div className="py-8 text-center border border-dashed border-white/10 rounded-2xl text-zinc-500 text-xs">
+              <div className="py-8 text-center border border-dashed border-zinc-300 dark:border-white/10 rounded-2xl text-zinc-500 text-xs">
                 No existing photo uploads found.
               </div>
             ) : (
@@ -3933,7 +4037,7 @@ export default function AdminDashboardClient({
                   {galleryAssets.map((asset) => (
                     <div
                       key={asset.url}
-                      className="aspect-square rounded-xl border border-white/5 bg-zinc-950 overflow-hidden relative group hover:border-violet-500 transition-all"
+                      className="aspect-square rounded-xl border border-zinc-200 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950 overflow-hidden relative group hover:border-violet-500 transition-all"
                     >
                       {/* Image Click to Select */}
                       <button
@@ -4018,7 +4122,7 @@ export default function AdminDashboardClient({
           >
             {promptFields.map((field) => (
               <div key={field.name}>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-2">
                   {field.label}
                 </label>
                 <input
@@ -4029,7 +4133,7 @@ export default function AdminDashboardClient({
                   onChange={(e) => {
                     setPromptValues((prev) => ({ ...prev, [field.name]: e.target.value }));
                   }}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                 />
               </div>
             ))}
@@ -4037,13 +4141,13 @@ export default function AdminDashboardClient({
               <button
                 type="button"
                 onClick={() => setPromptOpen(false)}
-                className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 border border-white/5 text-white font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-white font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Insert
               </button>
@@ -4059,14 +4163,14 @@ export default function AdminDashboardClient({
           maxWidthClass="max-w-md"
         >
           <div className="space-y-6">
-            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
               {confirmMessage}
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 border border-white/5 text-white font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-white font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -4120,22 +4224,22 @@ function AdminEditModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop - Protected from accidental click closure */}
+      {/* Backdrop - Soft dimmed overlay in light mode, deep dark in dark mode */}
       <div
-        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 cursor-default"
+        className="fixed inset-0 bg-zinc-950/40 dark:bg-black/80 backdrop-blur-md transition-opacity duration-300 cursor-default"
         onClick={handleBackdropClick}
       />
       {/* Modal Content */}
-      <div className={`relative glass-modal rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 ${
+      <div className={`relative bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 text-zinc-900 dark:text-white ${
         isPromptingClose 
           ? "border-violet-500/80 shadow-violet-500/20 shadow-2xl scale-[1.005]" 
-          : "border-white/10"
+          : "border-zinc-200/80 dark:border-white/10"
       }`}>
-        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+        <div className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-white">{title}</h2>
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white">{title}</h2>
             {isPromptingClose && (
-              <span className="text-[11px] font-medium text-violet-300 bg-violet-500/15 px-2.5 py-1 rounded-full border border-violet-500/30 animate-pulse">
+              <span className="text-[11px] font-medium text-violet-600 dark:text-violet-300 bg-violet-500/10 dark:bg-violet-500/15 px-2.5 py-1 rounded-full border border-violet-500/20 dark:border-violet-500/30 animate-pulse">
                 Klik tombol (X) untuk keluar
               </span>
             )}
@@ -4143,13 +4247,13 @@ function AdminEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-400 hover:text-white p-2 rounded-full bg-white/5 border border-white/10 hover:border-white/20 transition-colors cursor-pointer"
+            className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white p-2 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 transition-colors cursor-pointer"
             title="Tutup Modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-[72vh] md:max-h-[76vh] pr-1">
+        <div className="overflow-y-auto max-h-[72vh] md:max-h-[76vh] pr-1 text-zinc-900 dark:text-zinc-100">
           {children}
         </div>
       </div>
@@ -4227,3 +4331,17 @@ function resizeAndCompressImage(
     reader.onerror = () => resolve(file);
   });
 }
+
+function parseTechStack(technologies?: string | string[] | null): string[] {
+  if (!technologies) return [];
+  if (Array.isArray(technologies)) return technologies;
+  try {
+    const parsed = JSON.parse(technologies);
+    if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
+    if (typeof parsed === "string") return [parsed.trim()];
+  } catch {
+    return technologies.split(",").map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
