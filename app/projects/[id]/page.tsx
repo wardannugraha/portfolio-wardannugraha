@@ -137,12 +137,19 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           )}
         </div>
 
-        {/* Featured Image */}
-        <div className="rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950 relative aspect-video w-full shadow-lg dark:shadow-2xl">
+        {/* Featured Image with Smart Ambient Backdrop */}
+        <div className="rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100/90 dark:bg-zinc-950/80 relative w-full max-h-[560px] min-h-[260px] sm:min-h-[380px] flex items-center justify-center shadow-lg dark:shadow-2xl backdrop-blur-md">
+          {/* Blurred ambient backdrop */}
+          <div
+            className="absolute inset-0 scale-110 blur-2xl opacity-45 dark:opacity-30 pointer-events-none bg-cover bg-center"
+            style={{ backgroundImage: `url(${project.featuredImage})` }}
+          />
+          <div className="absolute inset-0 bg-black/[0.04] dark:bg-black/30 pointer-events-none z-0" />
+          {/* Main Sharp Image */}
           <img
             src={project.featuredImage}
             alt={project.title}
-            className="object-cover w-full h-full"
+            className="relative z-10 max-h-[560px] w-full h-auto object-contain mx-auto transition-transform duration-300 drop-shadow-md"
           />
         </div>
 
@@ -351,13 +358,19 @@ function parseMarkdown(text: string | null) {
         );
       } else {
         elements.push(
-          <div key={`img-${i}`} className="my-8 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100 dark:bg-zinc-950/40 relative aspect-video sm:max-h-[450px] w-full flex items-center justify-center shadow-lg">
+          <figure key={`img-${i}`} className="my-8 rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-white/5 bg-zinc-100/50 dark:bg-zinc-950/40 relative w-full flex flex-col items-center justify-center shadow-md">
             <img
               src={url}
               alt={alt}
-              className="object-cover w-full h-full"
+              className="w-full h-auto max-h-[650px] object-contain mx-auto rounded-2xl"
+              loading="lazy"
             />
-          </div>
+            {alt && alt !== "Image" && alt !== "image" && alt !== "Gambar" && (
+              <figcaption className="text-xs text-zinc-500 dark:text-zinc-400 py-2 px-4 text-center font-normal w-full border-t border-zinc-200/60 dark:border-white/5 bg-zinc-100/40 dark:bg-white/[0.01]">
+                {alt}
+              </figcaption>
+            )}
+          </figure>
         );
       }
     } else if (line === "") {

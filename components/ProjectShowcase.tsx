@@ -151,16 +151,22 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                 className="glass-card rounded-2xl sm:rounded-3xl p-3 sm:p-6 group cursor-pointer relative overflow-hidden flex flex-col justify-between border border-zinc-200/80 dark:border-white/5"
               >
                 <Link href={`/projects/${project.id}`} className="block md:cursor-none flex-1">
-                  {/* Visual Image Preview */}
+                  {/* Visual Image Preview with Smart Blur Backdrop */}
                   <div className="aspect-video w-full rounded-xl sm:rounded-2xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 mb-3 sm:mb-6 flex items-center justify-center relative overflow-hidden">
+                    {/* Blurred background fill to prevent empty letterbox */}
+                    <div
+                      className="absolute inset-0 scale-125 blur-xl opacity-40 dark:opacity-30 pointer-events-none bg-cover bg-center transition-transform duration-500 group-hover:scale-130"
+                      style={{ backgroundImage: `url(${project.featuredImage})` }}
+                    />
+                    <div className="absolute inset-0 bg-black/[0.03] dark:bg-black/20 pointer-events-none z-0" />
                     <Image
                       src={project.featuredImage}
                       alt={project.title}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 drop-shadow-sm p-0.5"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none z-10" />
                   </div>
 
                   {/* Details Footer */}
