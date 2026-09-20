@@ -54,6 +54,22 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
     }
   }
 
+  // Parse technologies
+  const projectTechs: string[] = [];
+  const rawTechs = (project as any).technologies;
+  if (rawTechs) {
+    try {
+      const parsed = JSON.parse(rawTechs);
+      if (Array.isArray(parsed)) {
+        projectTechs.push(...parsed.map(t => String(t).trim()).filter(Boolean));
+      } else if (typeof parsed === "string") {
+        projectTechs.push(...parsed.split(",").map(s => s.trim()).filter(Boolean));
+      }
+    } catch {
+      projectTechs.push(...rawTechs.split(",").map((s: string) => s.trim()).filter(Boolean));
+    }
+  }
+
   // Fallback if links is empty but demoUrl or githubUrl exist
   if (projectLinks.length === 0) {
     if (project.demoUrl) {
@@ -102,6 +118,23 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           <p className="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg font-light leading-relaxed">
             {project.description}
           </p>
+
+          {/* Tech Stack Pills in Header */}
+          {projectTechs.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mr-1">
+                Tech & Tools:
+              </span>
+              {projectTechs.map((tech, idx) => (
+                <span
+                  key={idx}
+                  className="text-xs font-medium px-3 py-1 rounded-lg bg-zinc-200/70 dark:bg-white/[0.07] text-zinc-800 dark:text-zinc-200 border border-zinc-300/80 dark:border-white/10 shadow-sm"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Featured Image */}
@@ -150,6 +183,21 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                       {project.demoUrl ? "Public Web Deployment" : "Internal / Localhost"}
                     </span>
                   </div>
+                  {projectTechs.length > 0 && (
+                    <div>
+                      <span className="text-zinc-500 block text-[10px] font-semibold uppercase tracking-wider mb-2">Technologies & Tools</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {projectTechs.map((tech, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-white/[0.06] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <span className="text-zinc-500 block text-[10px] font-semibold uppercase tracking-wider">Last Updated</span>
                     <span className="text-zinc-800 dark:text-zinc-300 font-medium mt-1 block flex items-center gap-1.5">

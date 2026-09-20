@@ -31,6 +31,7 @@ model Project {
   title         String
   description   String
   content       String?
+  technologies  String?
   featuredImage String
   demoUrl       String?
   githubUrl     String?

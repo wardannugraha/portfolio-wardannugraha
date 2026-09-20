@@ -17,6 +17,7 @@ interface Project {
   title: string;
   description: string;
   content: string | null;
+  technologies?: string | null;
   featuredImage: string;
   demoUrl: string | null;
   githubUrl: string | null;
@@ -176,9 +177,48 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                           {project.description}
                         </p>
                       </div>
+
+                      {/* Tech Stack Badges */}
+                      {(() => {
+                        const techs: string[] = [];
+                        if (project.technologies) {
+                          try {
+                            const parsed = JSON.parse(project.technologies);
+                            if (Array.isArray(parsed)) {
+                              techs.push(...parsed.map(t => String(t).trim()).filter(Boolean));
+                            } else if (typeof parsed === "string") {
+                              techs.push(...parsed.split(",").map(s => s.trim()).filter(Boolean));
+                            }
+                          } catch {
+                            techs.push(...project.technologies.split(",").map(s => s.trim()).filter(Boolean));
+                          }
+                        }
+                        if (techs.length === 0) return null;
+                        const maxDisplay = 3;
+                        const displayedTechs = techs.slice(0, maxDisplay);
+                        const extraCount = techs.length - maxDisplay;
+
+                        return (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                            {displayedTechs.map((tech, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-white/5 tracking-tight"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                            {extraCount > 0 && (
+                              <span className="text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-200/60 dark:border-violet-500/20">
+                                +{extraCount}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     
-                    <div className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-200 dark:border-white/10 items-center justify-center text-zinc-600 dark:text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-all flex-shrink-0 ml-4">
+                    <div className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-200 dark:border-white/10 items-center justify-center text-zinc-600 dark:text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-all flex-shrink-0 ml-4 self-start mt-1">
                       <ArrowUpRight className="w-4 h-4" />
                     </div>
                   </div>

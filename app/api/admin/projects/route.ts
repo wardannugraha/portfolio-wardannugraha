@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, title, description, content, featuredImage, demoUrl, githubUrl, links, categoryId, isFeatured, order } = await request.json();
+    const { id, title, description, content, technologies, featuredImage, demoUrl, githubUrl, links, categoryId, isFeatured, order } = await request.json();
 
     if (!title || !description || !categoryId || !featuredImage) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
           title,
           description,
           content,
+          technologies: technologies ? (typeof technologies === 'string' ? technologies : JSON.stringify(technologies)) : null,
           featuredImage,
           demoUrl,
           githubUrl,
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
           title,
           description,
           content,
+          technologies: technologies ? (typeof technologies === 'string' ? technologies : JSON.stringify(technologies)) : null,
           featuredImage,
           demoUrl,
           githubUrl,

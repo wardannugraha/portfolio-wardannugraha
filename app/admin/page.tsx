@@ -82,24 +82,45 @@ export default async function AdminDashboard() {
     contactLinksSetting = await prisma.siteSetting.findUnique({
       where: { key: "contact_links" },
     });
+
+    const cvProfilesSetting = await prisma.siteSetting.findUnique({
+      where: { key: "cv_profiles_data" },
+    });
+
+    return (
+      <AdminDashboardClient
+        initialProjects={projects}
+        initialMedia={media}
+        categories={categories}
+        initialSkills={skills}
+        initialAchievements={achievements}
+        initialCommunity={communityActivities}
+        initialAboutMe={aboutMeSetting?.value || ""}
+        initialAboutName={aboutNameSetting?.value || ""}
+        initialAboutPhoto={aboutPhotoSetting?.value || ""}
+        initialSkillCategories={skillCategoriesSetting?.value || "[]"}
+        initialContactLinks={contactLinksSetting?.value || "[]"}
+        initialCvProfilesData={cvProfilesSetting?.value || ""}
+      />
+    );
   } catch (error) {
     console.error("Error fetching admin data from database:", error);
+    return (
+      <AdminDashboardClient
+        initialProjects={[]}
+        initialMedia={[]}
+        categories={[]}
+        initialSkills={[]}
+        initialAchievements={[]}
+        initialCommunity={[]}
+        initialAboutMe=""
+        initialAboutName=""
+        initialAboutPhoto=""
+        initialSkillCategories="[]"
+        initialContactLinks="[]"
+        initialCvProfilesData=""
+      />
+    );
   }
-
-  return (
-    <AdminDashboardClient
-      initialProjects={projects}
-      initialMedia={media}
-      categories={categories}
-      initialSkills={skills}
-      initialAchievements={achievements}
-      initialCommunity={communityActivities}
-      initialAboutMe={aboutMeSetting?.value || ""}
-      initialAboutName={aboutNameSetting?.value || ""}
-      initialAboutPhoto={aboutPhotoSetting?.value || ""}
-      initialSkillCategories={skillCategoriesSetting?.value || "[]"}
-      initialContactLinks={contactLinksSetting?.value || "[]"}
-    />
-  );
 }
 

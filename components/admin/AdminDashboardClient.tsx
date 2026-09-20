@@ -5,10 +5,11 @@ import {
   LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut,
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
   Bold, Italic, Link, Image, Video, Heading, List, Quote, AlertCircle,
-  ChevronUp, ChevronDown, Menu
+  ChevronUp, ChevronDown, Menu, ScrollText, Sparkles
 } from "lucide-react";
 import { parseEmbedUrl } from "@/lib/embedParser";
 import ThemeToggle from "@/components/ThemeToggle";
+import CvGeneratorTab from "@/components/admin/cv/CvGeneratorTab";
 
 interface Category {
   id: string;
@@ -21,6 +22,7 @@ interface Project {
   title: string;
   description: string;
   content: string | null;
+  technologies?: string | null;
   featuredImage: string;
   demoUrl: string | null;
   githubUrl: string | null;
@@ -90,6 +92,7 @@ interface AdminDashboardClientProps {
   initialAboutPhoto: string;
   initialSkillCategories: string;
   initialContactLinks: string;
+  initialCvProfilesData?: string;
 }
 
 export default function AdminDashboardClient({
@@ -103,10 +106,11 @@ export default function AdminDashboardClient({
   initialAboutName,
   initialAboutPhoto,
   initialSkillCategories,
-  initialContactLinks
+  initialContactLinks,
+  initialCvProfilesData
 }: AdminDashboardClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "projects" | "media" | "about" | "skills" | "achievements" | "community" | "contact">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "cv" | "projects" | "media" | "about" | "skills" | "achievements" | "community" | "contact">("dashboard");
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [media, setMedia] = useState<Media[]>(initialMedia);
   const [loading, setLoading] = useState(false);
@@ -165,6 +169,8 @@ export default function AdminDashboardClient({
   const [projGit, setProjGit] = useState("");
   const [projFeatured, setProjFeatured] = useState(false);
   const [projLinks, setProjLinks] = useState<{ label: string; url: string; icon: string }[]>([]);
+  const [projTechs, setProjTechs] = useState<string[]>([]);
+  const [projTechInput, setProjTechInput] = useState("");
 
   // Media Form States
   const [mediaTitle, setMediaTitle] = useState("");
@@ -584,6 +590,8 @@ export default function AdminDashboardClient({
     setProjGit("");
     setProjFeatured(false);
     setProjLinks([]);
+    setProjTechs([]);
+    setProjTechInput("");
     setProjCatId(categories[0]?.id || "");
     setProjOrder(0);
   };
@@ -742,6 +750,7 @@ export default function AdminDashboardClient({
           title: projTitle,
           description: projDesc,
           content: projContent || null,
+          technologies: projTechs.length > 0 ? JSON.stringify(projTechs) : null,
           featuredImage: projImage || "/uploads/default.jpg",
           demoUrl: computedDemo,
           githubUrl: computedGithub,
@@ -1237,6 +1246,7 @@ export default function AdminDashboardClient({
               { id: "achievements", name: "Credentials CRUD", icon: Trophy },
               { id: "community", name: "Community CRUD", icon: Users },
               { id: "contact", name: "Contact & Social CRUD", icon: Link },
+              { id: "cv", name: "ATS CV Generator", icon: ScrollText },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1332,6 +1342,30 @@ export default function AdminDashboardClient({
               </div>
             </div>
           </>
+        )}
+
+        {activeTab === "cv" && (
+          <CvGeneratorTab
+            initialProjects={projects}
+            initialSkills={skills}
+            initialAchievements={achievements}
+            initialAboutMe={aboutMe}
+            initialAboutName={aboutName}
+            initialAboutPhoto={aboutPhoto}
+            initialContactLinks={JSON.stringify(contactLinks)}
+            initialCvProfilesData={initialCvProfilesData}
+            onSaveSetting={async (key, value) => {
+              const res = await fetch("/api/admin/settings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key, value }),
+              });
+              if (res.ok) {
+                showNotification("CV Presets saved successfully to database!");
+              }
+              return res.ok;
+            }}
+          />
         )}
 
         {activeTab === "projects" && (
@@ -1463,6 +1497,22 @@ export default function AdminDashboardClient({
                               }
                               setProjLinks(linksArr);
 
+                              let techsArr: string[] = [];
+                              if (p.technologies) {
+                                try {
+                                  const parsed = JSON.parse(p.technologies);
+                                  if (Array.isArray(parsed)) {
+                                    techsArr = parsed.map(t => String(t).trim()).filter(Boolean);
+                                  } else if (typeof parsed === "string") {
+                                    techsArr = parsed.split(",").map(s => s.trim()).filter(Boolean);
+                                  }
+                                } catch {
+                                  techsArr = p.technologies.split(",").map(s => s.trim()).filter(Boolean);
+                                }
+                              }
+                              setProjTechs(techsArr);
+                              setProjTechInput("");
+
                               setIsProjModalOpen(true);
                             }}
                             className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
@@ -1513,6 +1563,101 @@ export default function AdminDashboardClient({
                       placeholder="A short summary of the project to show in the cards"
                       className="w-full px-5 py-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-sm transition-all duration-200"
                     />
+                  </div>
+
+                  {/* Technologies & Tools (Tech Stack) */}
+                  <div className="space-y-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                        Technologies & Tools (Tech Stack)
+                      </label>
+                      <span className="text-[10px] text-zinc-500">{projTechs.length} tools added</span>
+                    </div>
+
+                    {/* Tag input and Add button */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={projTechInput}
+                        onChange={(e) => setProjTechInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === ",") {
+                            e.preventDefault();
+                            const val = projTechInput.replace(/,/g, "").trim();
+                            if (val && !projTechs.includes(val)) {
+                              setProjTechs([...projTechs, val]);
+                            }
+                            setProjTechInput("");
+                          }
+                        }}
+                        placeholder="Type tool (e.g. Next.js, Figma, Premiere Pro) & press Enter"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 focus:border-violet-500 focus:bg-white/[0.07] outline-none text-white text-xs transition-all duration-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = projTechInput.replace(/,/g, "").trim();
+                          if (val && !projTechs.includes(val)) {
+                            setProjTechs([...projTechs, val]);
+                          }
+                          setProjTechInput("");
+                        }}
+                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add
+                      </button>
+                    </div>
+
+                    {/* Selected Tags list */}
+                    {projTechs.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {projTechs.map((tech, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-violet-500/15 border border-violet-500/30 text-violet-200 text-xs font-medium"
+                          >
+                            <span>{tech}</span>
+                            <button
+                              type="button"
+                              onClick={() => setProjTechs(projTechs.filter((_, i) => i !== idx))}
+                              className="text-violet-300 hover:text-white p-0.5 rounded hover:bg-violet-500/30 transition-colors cursor-pointer"
+                              title="Hapus tool"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Quick Suggestion Chips */}
+                    <div className="pt-2 border-t border-white/5">
+                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider mb-2">
+                        Rekomendasi Cepat (Klik untuk menambah):
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          "Next.js", "React", "TypeScript", "Tailwind CSS", "Node.js", "Prisma", "PostgreSQL",
+                          "Figma", "Adobe Premiere Pro", "After Effects", "DaVinci Resolve", "Adobe Lightroom",
+                          "Adobe Photoshop", "Adobe Illustrator", "Python", "PyTorch", "Docker", "Git"
+                        ]
+                          .filter(t => !projTechs.includes(t))
+                          .slice(0, 12)
+                          .map((tool) => (
+                            <button
+                              key={tool}
+                              type="button"
+                              onClick={() => setProjTechs([...projTechs, tool])}
+                              className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-violet-500/20 text-zinc-400 hover:text-violet-300 border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <Plus className="w-2.5 h-2.5 opacity-60" />
+                              {tool}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2">
