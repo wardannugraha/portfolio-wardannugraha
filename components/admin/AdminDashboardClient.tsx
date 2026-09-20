@@ -4094,25 +4094,57 @@ interface AdminEditModalProps {
   title: string;
   children: React.ReactNode;
   maxWidthClass?: string;
+  closeOnBackdropClick?: boolean;
 }
 
-function AdminEditModal({ isOpen, onClose, title, children, maxWidthClass = "max-w-2xl" }: AdminEditModalProps) {
+function AdminEditModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  maxWidthClass = "max-w-2xl",
+  closeOnBackdropClick = false
+}: AdminEditModalProps) {
+  const [isPromptingClose, setIsPromptingClose] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleBackdropClick = () => {
+    if (closeOnBackdropClick) {
+      onClose();
+    } else {
+      setIsPromptingClose(true);
+      setTimeout(() => setIsPromptingClose(false), 1200);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Backdrop - Protected from accidental click closure */}
       <div
-        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300"
-        onClick={onClose}
+        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity duration-300 cursor-default"
+        onClick={handleBackdropClick}
       />
       {/* Modal Content */}
-      <div className={`relative glass-modal rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border border-white/10 shadow-2xl transition-all duration-300 transform scale-100 flex flex-col gap-6`}>
+      <div className={`relative glass-modal rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 ${
+        isPromptingClose 
+          ? "border-violet-500/80 shadow-violet-500/20 shadow-2xl scale-[1.005]" 
+          : "border-white/10"
+      }`}>
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-white">{title}</h2>
+            {isPromptingClose && (
+              <span className="text-[11px] font-medium text-violet-300 bg-violet-500/15 px-2.5 py-1 rounded-full border border-violet-500/30 animate-pulse">
+                Klik tombol (X) untuk keluar
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-400 hover:text-white p-2 rounded-full bg-white/5 border border-white/5 transition-colors cursor-pointer"
+            className="text-zinc-400 hover:text-white p-2 rounded-full bg-white/5 border border-white/10 hover:border-white/20 transition-colors cursor-pointer"
+            title="Tutup Modal"
           >
             <X className="w-5 h-5" />
           </button>
