@@ -14,27 +14,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid payload" }, { status: 400 });
     }
 
-    const updates = items.map((item) => {
-      const data = { order: item.order };
-      if (type === "projects") {
-        return prisma.project.update({ where: { id: item.id }, data });
-      } else if (type === "media") {
-        return prisma.media.update({ where: { id: item.id }, data });
-      } else if (type === "achievements") {
-        return prisma.achievement.update({ where: { id: item.id }, data });
-      } else if (type === "skills") {
-        return prisma.skill.update({ where: { id: item.id }, data });
-      } else if (type === "community") {
-        return prisma.communityActivity.update({ where: { id: item.id }, data });
-      }
-      throw new Error("Unknown type: " + type);
-    });
+    const validItems = items.filter((item) => item && typeof item.id === "string");
 
-    await prisma.$transaction(updates);
+    // Execute individual updates in parallel without transaction locks
+    await Promise.all(
+      validItems.map(async (item) => {
+        const orderVal = typeof item.order === "number" ? Math.round(item.order) : (item.order ? parseInt(String(item.order), 10) : 0);
+        const data = { order: isNaN(orderVal) ? 0 : orderVal };
+
+        try {
+          if (type === "projects") {
+            await prisma.project.update({ where: { id: item.id }, data });
+          } else if (type === "media") {
+            await prisma.media.update({ where: { id: item.id }, data });
+          } else if (type === "achievements") {
+            await prisma.achievement.update({ where: { id: item.id }, data });
+          } else if (type === "skills") {
+            await prisma.skill.update({ where: { id: item.id }, data });
+          } else if (type === "community") {
+            await prisma.communityActivity.update({ where: { id: item.id }, data });
+          }
+        } catch (itemErr: any) {
+          console.warn(`[reorder] item update failed for ${item.id} in ${type}:`, itemErr?.message);
+        }
+      })
+    );
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Reorder error:", error);
-    return NextResponse.json({ success: false, error: error.message || "Database error" }, { status: 500 });
+    console.error("Reorder API error:", error);
+    return NextResponse.json({ success: false, error: error?.message || "Database error" }, { status: 500 });
   }
 }

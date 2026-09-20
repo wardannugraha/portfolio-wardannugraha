@@ -175,7 +175,10 @@ export default function ProjectShowcase({ initialProjects }: ProjectShowcaseProp
                       <span className="text-[9px] sm:text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider">
                         {project.category.name}
                       </span>
-                      <h3 className="text-xs sm:text-base md:text-xl font-bold text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">
+                      <h3
+                        title={project.title}
+                        className="text-xs sm:text-base md:text-lg font-bold text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors line-clamp-4 leading-snug break-words"
+                      >
                         {project.title}
                       </h3>
                       <div className="hidden sm:block mt-1">

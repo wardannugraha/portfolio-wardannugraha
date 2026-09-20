@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut,
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
   Bold, Italic, Link, Image, Video, Heading, List, Quote, AlertCircle,
-  ChevronUp, ChevronDown, Menu, ScrollText, Sparkles
+  ChevronUp, ChevronDown, Menu, ScrollText, Sparkles, GripVertical
 } from "lucide-react";
 import { parseEmbedUrl } from "@/lib/embedParser";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -486,6 +486,80 @@ export default function AdminDashboardClient({
       }
     } catch (err) {
       console.error("Reorder save API error:", err);
+    }
+  };
+
+  // Drag & Drop Layer Reordering State
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
+
+  const handleDropReorder = async (
+    type: "projects" | "media" | "achievements" | "skills" | "community",
+    sourceId: string | null,
+    targetId: string | null
+  ) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    let fullList: any[] = [];
+    let setList: React.Dispatch<React.SetStateAction<any[]>> = () => { };
+
+    if (type === "projects") {
+      fullList = [...projects];
+      setList = setProjects as any;
+    } else if (type === "media") {
+      fullList = [...media];
+      setList = setMedia as any;
+    } else if (type === "achievements") {
+      fullList = [...achievements];
+      setList = setAchievements as any;
+    } else if (type === "skills") {
+      fullList = [...skills];
+      setList = setSkills as any;
+    } else if (type === "community") {
+      fullList = [...community];
+      setList = setCommunity as any;
+    }
+
+    const sourceIndex = fullList.findIndex(item => item.id === sourceId);
+    const targetIndex = fullList.findIndex(item => item.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    // Splice source and insert at target position
+    const [movedItem] = fullList.splice(sourceIndex, 1);
+    fullList.splice(targetIndex, 0, movedItem);
+
+    // Reassign sequential order numbers
+    const updatedItems = fullList.map((item, idx) => ({
+      ...item,
+      order: idx,
+    }));
+
+    let sortedItems: any[] = [];
+    if (type === "projects") sortedItems = sortProjects(updatedItems);
+    else if (type === "media") sortedItems = sortMedia(updatedItems);
+    else if (type === "achievements") sortedItems = sortAchievements(updatedItems);
+    else if (type === "skills") sortedItems = sortSkills(updatedItems);
+    else if (type === "community") sortedItems = sortCommunity(updatedItems);
+
+    setList(sortedItems);
+    showNotification("Urutan berhasil dipindahkan!");
+
+    try {
+      const res = await fetch("/api/admin/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          items: sortedItems.map((item) => ({ id: item.id, order: item.order })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error("Failed to persist order to database:", data.error);
+      }
+    } catch (err) {
+      console.error("Reorder drop save error:", err);
     }
   };
 
@@ -1205,15 +1279,19 @@ export default function AdminDashboardClient({
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 flex flex-col md:flex-row pt-16 transition-colors duration-400">
       {/* Toast Notification */}
       {successMsg && (
-        <div className="fixed bottom-5 right-5 z-50 bg-emerald-500 text-black font-semibold py-3 px-5 rounded-xl flex items-center gap-2 shadow-2xl transition-all duration-300">
-          <Check className="w-5 h-5 stroke-[3]" />
-          <span>{successMsg}</span>
+        <div className="fixed top-20 right-6 z-[9999] bg-emerald-500 text-zinc-950 font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-emerald-400/40 backdrop-blur-md transition-all duration-300">
+          <div className="w-7 h-7 rounded-full bg-zinc-950/15 flex items-center justify-center flex-shrink-0">
+            <Check className="w-4 h-4 stroke-[3]" />
+          </div>
+          <span className="text-sm font-medium">{successMsg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="fixed bottom-5 right-5 z-50 bg-red-500 text-white font-semibold py-3 px-5 rounded-xl flex items-center gap-2 shadow-2xl transition-all duration-300">
-          <AlertCircle className="w-5 h-5 stroke-[2]" />
-          <span>{errorMsg}</span>
+        <div className="fixed top-20 right-6 z-[9999] bg-red-500 text-white font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-red-400/40 backdrop-blur-md transition-all duration-300">
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <AlertCircle className="w-4 h-4 stroke-[2]" />
+          </div>
+          <span className="text-sm font-medium">{errorMsg}</span>
         </div>
       )}
 
@@ -1246,11 +1324,11 @@ export default function AdminDashboardClient({
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:static inset-y-16 md:inset-y-auto left-0 z-50
-        w-64 h-[calc(100vh-4rem)] md:h-auto 
-        bg-white dark:bg-[#090909] md:bg-transparent
-        border-r border-zinc-200 dark:border-white/5 md:border-r md:border-b-0
-        p-6 flex flex-col justify-between
+        fixed md:sticky top-16 left-0 z-40
+        w-64 h-[calc(100vh-4rem)] flex-shrink-0
+        bg-white dark:bg-[#090909]
+        border-r border-zinc-200 dark:border-white/5
+        p-6 flex flex-col justify-between overflow-y-auto
         transition-transform duration-300 md:transition-none shadow-lg md:shadow-none
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}>
@@ -1322,7 +1400,7 @@ export default function AdminDashboardClient({
       </aside>
 
       {/* Main Content Pane */}
-      <main className="flex-1 p-6 sm:p-10 space-y-8 overflow-y-auto max-h-screen">
+      <main className="flex-1 p-6 sm:p-10 space-y-8 min-w-0">
         {activeTab === "dashboard" && (
           <>
             <div>
@@ -1430,7 +1508,13 @@ export default function AdminDashboardClient({
             {/* List of current projects */}
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Projects ({filteredProjects.length})</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Projects ({filteredProjects.length})</h2>
+                  <span className="hidden sm:inline-flex text-[11px] text-violet-600 dark:text-violet-400 font-medium bg-violet-500/10 px-2.5 py-0.5 rounded-full border border-violet-500/20 items-center gap-1">
+                    <GripVertical className="w-3 h-3" />
+                    Drag & Drop reorder enabled
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
                   <select
@@ -1449,6 +1533,7 @@ export default function AdminDashboardClient({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
+                      <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
                       <th className="py-3 px-4">Image</th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
@@ -1458,55 +1543,99 @@ export default function AdminDashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {filteredProjects.map((p, idx) => (
-                      <tr key={p.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4">
-                          <a
-                            href={p.featuredImage}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-12 h-8 rounded bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 overflow-hidden flex-shrink-0 relative group/thumb"
-                            title="Click to view full image"
-                          >
-                            <img
-                              src={getThumbnailUrl(p.featuredImage)}
-                              alt={p.title}
-                              className="object-cover w-full h-full group-hover/thumb:scale-110 transition-transform duration-200"
-                            />
-                          </a>
-                        </td>
-                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{p.title}</td>
-                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{p.category.name}</td>
-                        <td className="py-3 px-4">
-                          {p.isFeatured ? (
-                            <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
-                          ) : (
-                            <span className="text-[10px] font-semibold bg-zinc-500/10 border border-zinc-200 dark:border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleMoveItem("projects", p.id, "up")}
-                              disabled={idx === 0}
-                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
-                              title="Geser Naik"
+                    {filteredProjects.map((p, idx) => {
+                      const isDragging = draggedItemId === p.id;
+                      const isDragOver = dragOverItemId === p.id && !isDragging;
+
+                      return (
+                        <tr
+                          key={p.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", p.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggedItemId(p.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverItemId !== p.id) {
+                              setDragOverItemId(p.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverItemId === p.id) {
+                              setDragOverItemId(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            handleDropReorder("projects", draggedItemId, p.id);
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          className={`transition-all duration-150 ${
+                            isDragging
+                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                              : isDragOver
+                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                            <GripVertical className="w-4 h-4 mx-auto" />
+                          </td>
+                          <td className="py-3 px-4">
+                            <a
+                              href={p.featuredImage}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block w-12 h-8 rounded bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 overflow-hidden flex-shrink-0 relative group/thumb"
+                              title="Click to view full image"
                             >
-                              <ChevronUp className="w-4 h-4" />
-                            </button>
-                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{p.order || 0}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleMoveItem("projects", p.id, "down")}
-                              disabled={idx === filteredProjects.length - 1}
-                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
-                              title="Geser Turun"
-                            >
-                              <ChevronDown className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                              <img
+                                src={getThumbnailUrl(p.featuredImage)}
+                                alt={p.title}
+                                className="object-cover w-full h-full group-hover/thumb:scale-110 transition-transform duration-200"
+                              />
+                            </a>
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{p.title}</td>
+                          <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{p.category.name}</td>
+                          <td className="py-3 px-4">
+                            {p.isFeatured ? (
+                              <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 py-0.5 px-2 rounded-full">Yes</span>
+                            ) : (
+                              <span className="text-[10px] font-semibold bg-zinc-500/10 border border-zinc-200 dark:border-white/5 text-zinc-500 py-0.5 px-2 rounded-full">No</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveItem("projects", p.id, "up")}
+                                disabled={idx === 0}
+                                className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                title="Geser Naik"
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+                              <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{p.order || 0}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveItem("projects", p.id, "down")}
+                                disabled={idx === filteredProjects.length - 1}
+                                className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                title="Geser Turun"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
                         <td className="py-3 px-4 text-right space-x-2">
                           <button
                             onClick={() => {
@@ -1545,7 +1674,8 @@ export default function AdminDashboardClient({
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
@@ -2088,6 +2218,7 @@ export default function AdminDashboardClient({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
+                      <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
                       <th className="py-3 px-4">Preview</th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Category</th>
@@ -2103,9 +2234,51 @@ export default function AdminDashboardClient({
                       const embedInfo = parseEmbedUrl(vUrl);
                       const isVideo = m.category?.slug === "video-editing" || embedInfo.type === "youtube" || embedInfo.type === "vimeo" || embedInfo.type === "instagram" || embedInfo.type === "tiktok";
                       const thumbSrc = cUrl || embedInfo.thumbnailUrl || vUrl;
+                      const isDragging = draggedItemId === m.id;
+                      const isDragOver = dragOverItemId === m.id && !isDragging;
 
                       return (
-                        <tr key={m.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
+                        <tr
+                          key={m.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", m.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggedItemId(m.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverItemId !== m.id) {
+                              setDragOverItemId(m.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverItemId === m.id) {
+                              setDragOverItemId(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            handleDropReorder("media", draggedItemId, m.id);
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          className={`transition-all duration-150 ${
+                            isDragging
+                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                              : isDragOver
+                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                            <GripVertical className="w-4 h-4 mx-auto" />
+                          </td>
                           <td className="py-3 px-4">
                             <a
                               href={vUrl}
@@ -2678,7 +2851,8 @@ export default function AdminDashboardClient({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
-                      <th className="py-3 px-4">Name</th>
+                      <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
+                      <th className="py-3 px-4">Skill Name</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Rating Visual</th>
                       <th className="py-3 px-4 text-center">Order</th>
@@ -2686,18 +2860,62 @@ export default function AdminDashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {skills.map((s, idx) => (
-                      <tr key={s.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{s.name}</td>
-                        <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{s.category}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 bg-zinc-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                              <div className="bg-violet-500 h-full" style={{ width: `${s.level || 50}%` }} />
+                    {skills.map((s, idx) => {
+                      const isDragging = draggedItemId === s.id;
+                      const isDragOver = dragOverItemId === s.id && !isDragging;
+
+                      return (
+                        <tr
+                          key={s.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", s.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggedItemId(s.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverItemId !== s.id) {
+                              setDragOverItemId(s.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverItemId === s.id) {
+                              setDragOverItemId(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            handleDropReorder("skills", draggedItemId, s.id);
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          className={`transition-all duration-150 ${
+                            isDragging
+                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                              : isDragOver
+                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                            <GripVertical className="w-4 h-4 mx-auto" />
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{s.name}</td>
+                          <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{s.category}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-24 bg-zinc-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                <div className="bg-violet-500 h-full" style={{ width: `${s.level || 50}%` }} />
+                              </div>
+                              <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">{s.level || "50"}%</span>
                             </div>
-                            <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">{s.level || "50"}%</span>
-                          </div>
-                        </td>
+                          </td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <button
@@ -2745,7 +2963,8 @@ export default function AdminDashboardClient({
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
@@ -2894,6 +3113,7 @@ export default function AdminDashboardClient({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
+                      <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Issuer</th>
                       <th className="py-3 px-4">Date</th>
@@ -2902,9 +3122,53 @@ export default function AdminDashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {achievements.map((a, idx) => (
-                      <tr key={a.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{a.title}</td>
+                    {achievements.map((a, idx) => {
+                      const isDragging = draggedItemId === a.id;
+                      const isDragOver = dragOverItemId === a.id && !isDragging;
+
+                      return (
+                        <tr
+                          key={a.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", a.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggedItemId(a.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverItemId !== a.id) {
+                              setDragOverItemId(a.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverItemId === a.id) {
+                              setDragOverItemId(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            handleDropReorder("achievements", draggedItemId, a.id);
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          className={`transition-all duration-150 ${
+                            isDragging
+                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                              : isDragOver
+                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                            <GripVertical className="w-4 h-4 mx-auto" />
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{a.title}</td>
                         <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{a.issuer}</td>
                         <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">
                           {a.date ? new Date(a.date).toLocaleDateString("id-ID", { year: "numeric", month: "short" }) : "N/A"}
@@ -2968,7 +3232,8 @@ export default function AdminDashboardClient({
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
@@ -3397,6 +3662,7 @@ export default function AdminDashboardClient({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
+                      <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
                       <th className="py-3 px-4">Title</th>
                       <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Organization</th>
@@ -3406,9 +3672,53 @@ export default function AdminDashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {community.map((c, idx) => (
-                      <tr key={c.id} className="hover:bg-zinc-100/50 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{c.title}</td>
+                    {community.map((c, idx) => {
+                      const isDragging = draggedItemId === c.id;
+                      const isDragOver = dragOverItemId === c.id && !isDragging;
+
+                      return (
+                        <tr
+                          key={c.id}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("text/plain", c.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggedItemId(c.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverItemId !== c.id) {
+                              setDragOverItemId(c.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverItemId === c.id) {
+                              setDragOverItemId(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            handleDropReorder("community", draggedItemId, c.id);
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDragOverItemId(null);
+                          }}
+                          className={`transition-all duration-150 ${
+                            isDragging
+                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                              : isDragOver
+                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                            <GripVertical className="w-4 h-4 mx-auto" />
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{c.title}</td>
                         <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{c.role}</td>
                         <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{c.organization}</td>
                         <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">{c.dateRange}</td>
@@ -3472,7 +3782,8 @@ export default function AdminDashboardClient({
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
