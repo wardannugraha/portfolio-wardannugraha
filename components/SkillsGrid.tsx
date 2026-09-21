@@ -106,7 +106,7 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
       </div>
 
       {/* Grid of skills cards */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
         <AnimatePresence>
           {filteredSkills.map((skill) => {
             const percentage = getLevelPercentage(skill.level);
@@ -117,15 +117,15 @@ export default function SkillsGrid({ initialSkills, categoryOrder = [] }: Skills
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
-                className="glass-card p-3.5 sm:p-5 rounded-xl sm:rounded-2xl flex flex-col justify-between border border-zinc-200/80 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/15"
+                className="glass-card p-3 sm:p-3.5 rounded-xl sm:rounded-2xl flex flex-col justify-between border border-zinc-200/80 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/15 transition-all duration-200"
               >
-                <div className="flex justify-between items-start gap-2">
-                  <h4 className="font-semibold text-zinc-900 dark:text-white text-xs sm:text-base">{skill.name}</h4>
-                  <span className="text-violet-600 dark:text-violet-400 text-[10px] sm:text-sm font-semibold">{percentage}%</span>
+                <div className="flex justify-between items-start gap-1.5">
+                  <h4 className="font-semibold text-zinc-900 dark:text-white text-xs sm:text-sm truncate" title={skill.name}>{skill.name}</h4>
+                  <span className="text-violet-600 dark:text-violet-400 text-[10px] sm:text-xs font-semibold flex-shrink-0">{percentage}%</span>
                 </div>
 
                 {/* Glowing progress bar rating */}
-                <div className="w-full bg-zinc-200 dark:bg-white/5 h-1 sm:h-1.5 rounded-full overflow-hidden mt-2.5 sm:mt-4 relative">
+                <div className="w-full bg-zinc-200 dark:bg-white/5 h-1 sm:h-1.5 rounded-full overflow-hidden mt-2.5 sm:mt-3.5 relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}

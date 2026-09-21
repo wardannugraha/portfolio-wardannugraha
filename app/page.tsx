@@ -327,7 +327,7 @@ export default async function Home() {
         <div className="absolute top-1/4 left-10 w-[350px] h-[350px] bg-amber-500/[0.04] dark:bg-amber-500/[0.03] rounded-full blur-[120px] pointer-events-none -z-10" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-12 gap-12 items-start">
-            <div className="md:col-span-5">
+            <div className="md:col-span-5 md:sticky md:top-28">
               <TiltCard src={displayAboutPhoto} alt={displayAboutName} />
             </div>
             <div className="md:col-span-7 flex flex-col gap-6">

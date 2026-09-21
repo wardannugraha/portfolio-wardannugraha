@@ -285,6 +285,8 @@ export default function AdminDashboardClient({
   }
 
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
+  const [selectedSkillCategory, setSelectedSkillCategory] = useState("all");
+  const filteredSkills = skills.filter(s => selectedSkillCategory === "all" || s.category.toLowerCase() === selectedSkillCategory.toLowerCase());
   const [customCategories, setCustomCategories] = useState<string[]>(parsedSkillCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [skillName, setSkillName] = useState("");
@@ -434,6 +436,8 @@ export default function AdminDashboardClient({
       filteredSubset = fullList.filter(p => p.categoryId === selectedProjCategory);
     } else if (type === "media" && selectedMediaCategory !== "all") {
       filteredSubset = fullList.filter(m => m.categoryId === selectedMediaCategory);
+    } else if (type === "skills" && selectedSkillCategory !== "all") {
+      filteredSubset = fullList.filter(s => s.category.toLowerCase() === selectedSkillCategory.toLowerCase());
     }
 
     const subsetIndex = filteredSubset.findIndex(item => item.id === id);
@@ -721,7 +725,10 @@ export default function AdminDashboardClient({
   const resetSkillForm = () => {
     setSkillName("");
     setSkillLevel(80);
-    setSkillCategory(customCategories[0] || "");
+    const defaultCat = selectedSkillCategory !== "all"
+      ? selectedSkillCategory
+      : (customCategories[0] || "");
+    setSkillCategory(defaultCat);
     setEditingSkillId(null);
     setSkillOrder(0);
   };
@@ -1355,13 +1362,13 @@ export default function AdminDashboardClient({
           <nav className="space-y-1">
             {[
               { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },
-              { id: "about", name: "About Me Dynamic", icon: User },
-              { id: "skills", name: "Skills CRUD", icon: Sliders },
-              { id: "projects", name: "Projects CRUD", icon: FileText },
-              { id: "media", name: "Media CRUD", icon: Camera },
-              { id: "achievements", name: "Credentials CRUD", icon: Trophy },
-              { id: "community", name: "Community CRUD", icon: Users },
-              { id: "contact", name: "Contact & Social CRUD", icon: Link },
+              { id: "about", name: "About Me", icon: User },
+              { id: "skills", name: "Skills", icon: Sliders },
+              { id: "projects", name: "Projects", icon: FileText },
+              { id: "media", name: "Media Gallery", icon: Camera },
+              { id: "achievements", name: "Credentials & Awards", icon: Trophy },
+              { id: "community", name: "Community Experience", icon: Users },
+              { id: "contact", name: "Contact & Socials", icon: Link },
               { id: "cv", name: "ATS CV Generator", icon: ScrollText },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -2846,7 +2853,72 @@ export default function AdminDashboardClient({
 
             {/* Skills Table List */}
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
-              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Skills ({skills.length})</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Skills ({filteredSkills.length})</h2>
+                  <span className="hidden sm:inline-flex text-[11px] text-violet-600 dark:text-violet-400 font-medium bg-violet-500/10 px-2.5 py-0.5 rounded-full border border-violet-500/20 items-center gap-1">
+                    <GripVertical className="w-3 h-3" />
+                    Drag & Drop reorder enabled
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
+                  <select
+                    value={selectedSkillCategory}
+                    onChange={(e) => setSelectedSkillCategory(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                  >
+                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories ({skills.length})</option>
+                    {customCategories.map((cat) => {
+                      const count = skills.filter(s => s.category.toLowerCase() === cat.toLowerCase()).length;
+                      return (
+                        <option key={cat} value={cat} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">
+                          {cat} ({count})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+
+              {/* Quick Filter Category Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-6 pb-4 border-b border-zinc-200/60 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSkillCategory("all")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    selectedSkillCategory === "all"
+                      ? "bg-violet-600 text-white shadow-sm"
+                      : "bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  All ({skills.length})
+                </button>
+                {customCategories.map((cat) => {
+                  const count = skills.filter(s => s.category.toLowerCase() === cat.toLowerCase()).length;
+                  const isSelected = selectedSkillCategory.toLowerCase() === cat.toLowerCase();
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setSelectedSkillCategory(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? "bg-violet-600 text-white shadow-sm"
+                          : "bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected ? "bg-white/20 text-white" : "bg-zinc-200/80 dark:bg-white/10 text-zinc-600 dark:text-zinc-400"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -2860,111 +2932,119 @@ export default function AdminDashboardClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {skills.map((s, idx) => {
-                      const isDragging = draggedItemId === s.id;
-                      const isDragOver = dragOverItemId === s.id && !isDragging;
-
-                      return (
-                        <tr
-                          key={s.id}
-                          draggable={true}
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData("text/plain", s.id);
-                            e.dataTransfer.effectAllowed = "move";
-                            setDraggedItemId(s.id);
-                          }}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = "move";
-                            if (dragOverItemId !== s.id) {
-                              setDragOverItemId(s.id);
-                            }
-                          }}
-                          onDragLeave={() => {
-                            if (dragOverItemId === s.id) {
-                              setDragOverItemId(null);
-                            }
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            handleDropReorder("skills", draggedItemId, s.id);
-                            setDraggedItemId(null);
-                            setDragOverItemId(null);
-                          }}
-                          onDragEnd={() => {
-                            setDraggedItemId(null);
-                            setDragOverItemId(null);
-                          }}
-                          className={`transition-all duration-150 ${
-                            isDragging
-                              ? "opacity-30 bg-violet-500/10 scale-[0.99]"
-                              : isDragOver
-                              ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
-                              : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
-                          }`}
-                        >
-                          <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
-                            <GripVertical className="w-4 h-4 mx-auto" />
-                          </td>
-                          <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{s.name}</td>
-                          <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{s.category}</td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-24 bg-zinc-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                                <div className="bg-violet-500 h-full" style={{ width: `${s.level || 50}%` }} />
-                              </div>
-                              <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">{s.level || "50"}%</span>
-                            </div>
-                          </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleMoveItem("skills", s.id, "up")}
-                              disabled={idx === 0}
-                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
-                              title="Geser Naik"
-                            >
-                              <ChevronUp className="w-4 h-4" />
-                            </button>
-                            <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{s.order || 0}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleMoveItem("skills", s.id, "down")}
-                              disabled={idx === skills.length - 1}
-                              className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
-                              title="Geser Turun"
-                            >
-                              <ChevronDown className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingSkillId(s.id);
-                              setSkillName(s.name);
-                              setSkillLevel(Number(s.level) || 80);
-                              setSkillCategory(s.category);
-                              setSkillOrder(s.order || 0);
-                              setIsSkillModalOpen(true);
-                            }}
-                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSkill(s.id)}
-                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                    {filteredSkills.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-10 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                          No skills found {selectedSkillCategory !== "all" ? `in "${selectedSkillCategory}" category` : ""}. Click &quot;Add Skill&quot; to add one.
                         </td>
                       </tr>
-                    );
-                  })}
+                    ) : (
+                      filteredSkills.map((s, idx) => {
+                        const isDragging = draggedItemId === s.id;
+                        const isDragOver = dragOverItemId === s.id && !isDragging;
+
+                        return (
+                          <tr
+                            key={s.id}
+                            draggable={true}
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData("text/plain", s.id);
+                              e.dataTransfer.effectAllowed = "move";
+                              setDraggedItemId(s.id);
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = "move";
+                              if (dragOverItemId !== s.id) {
+                                setDragOverItemId(s.id);
+                              }
+                            }}
+                            onDragLeave={() => {
+                              if (dragOverItemId === s.id) {
+                                setDragOverItemId(null);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              handleDropReorder("skills", draggedItemId, s.id);
+                              setDraggedItemId(null);
+                              setDragOverItemId(null);
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDragOverItemId(null);
+                            }}
+                            className={`transition-all duration-150 ${
+                              isDragging
+                                ? "opacity-30 bg-violet-500/10 scale-[0.99]"
+                                : isDragOver
+                                ? "bg-violet-500/15 border-t-2 border-violet-500 shadow-md"
+                                : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.02]"
+                            }`}
+                          >
+                            <td className="py-3 px-3 text-center cursor-grab active:cursor-grabbing text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 select-none" title="Tahan dan geser (drag) ke atas/bawah untuk mengubah urutan layer">
+                              <GripVertical className="w-4 h-4 mx-auto" />
+                            </td>
+                            <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">{s.name}</td>
+                            <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{s.category}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-24 bg-zinc-200 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                                  <div className="bg-violet-500 h-full" style={{ width: `${s.level || 50}%` }} />
+                                </div>
+                                <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold">{s.level || "50"}%</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveItem("skills", s.id, "up")}
+                                  disabled={idx === 0}
+                                  className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                  title="Geser Naik"
+                                >
+                                  <ChevronUp className="w-4 h-4" />
+                                </button>
+                                <span className="text-xs font-mono w-6 text-center text-zinc-700 dark:text-zinc-300">{s.order || 0}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveItem("skills", s.id, "down")}
+                                  disabled={idx === filteredSkills.length - 1}
+                                  className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                                  title="Geser Turun"
+                                >
+                                  <ChevronDown className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right space-x-2">
+                              <button
+                                onClick={() => {
+                                  setEditingSkillId(s.id);
+                                  setSkillName(s.name);
+                                  setSkillLevel(Number(s.level) || 80);
+                                  setSkillCategory(s.category);
+                                  setSkillOrder(s.order || 0);
+                                  setIsSkillModalOpen(true);
+                                }}
+                                className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                title="Edit"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSkill(s.id)}
+                                className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
