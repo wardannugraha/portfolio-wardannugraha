@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut,
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
@@ -1357,7 +1358,7 @@ export default function AdminDashboardClient({
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#030303] text-zinc-900 dark:text-zinc-100 flex flex-col md:flex-row pt-16 transition-colors duration-400">
       {/* Toast Notification */}
       {successMsg && (
-        <div className="fixed top-20 right-6 z-[9999] bg-emerald-500 text-zinc-950 font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-emerald-400/40 backdrop-blur-md transition-all duration-300">
+        <div className="fixed top-20 right-6 z-[9500] bg-emerald-500 text-zinc-950 font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-emerald-400/40 backdrop-blur-md transition-all duration-300">
           <div className="w-7 h-7 rounded-full bg-zinc-950/15 flex items-center justify-center flex-shrink-0">
             <Check className="w-4 h-4 stroke-[3]" />
           </div>
@@ -1365,7 +1366,7 @@ export default function AdminDashboardClient({
         </div>
       )}
       {errorMsg && (
-        <div className="fixed top-20 right-6 z-[9999] bg-red-500 text-white font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-red-400/40 backdrop-blur-md transition-all duration-300">
+        <div className="fixed top-20 right-6 z-[9500] bg-red-500 text-white font-semibold py-3.5 px-5 rounded-2xl flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.3)] border border-red-400/40 backdrop-blur-md transition-all duration-300">
           <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
             <AlertCircle className="w-4 h-4 stroke-[2]" />
           </div>
@@ -5929,8 +5930,13 @@ function AdminEditModal({
   closeOnBackdropClick = false
 }: AdminEditModalProps) {
   const [isPromptingClose, setIsPromptingClose] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Lock background body scroll cleanly and allow ESC key dismissal
   useEffect(() => {
@@ -5951,7 +5957,7 @@ function AdminEditModal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleBackdropClick = () => {
     if (closeOnBackdropClick) {
@@ -5962,15 +5968,15 @@ function AdminEditModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  const modalNode = (
+    <div className="fixed inset-0 z-[9000] flex items-center justify-center p-4">
       {/* Backdrop - Soft dimmed overlay in light mode, deep dark in dark mode */}
       <div
         className="fixed inset-0 bg-zinc-950/40 dark:bg-black/80 backdrop-blur-md transition-opacity duration-300 cursor-default"
         onClick={handleBackdropClick}
       />
       {/* Modal Content */}
-      <div className={`relative bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-hidden z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 text-zinc-900 dark:text-white ${
+      <div className={`relative isolate bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-hidden z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 text-zinc-900 dark:text-white ${
         isPromptingClose 
           ? "border-violet-500/80 shadow-violet-500/20 shadow-2xl scale-[1.005]" 
           : "border-zinc-200/80 dark:border-white/10"
@@ -5999,6 +6005,8 @@ function AdminEditModal({
       </div>
     </div>
   );
+
+  return createPortal(modalNode, document.body);
 }
 
 function getThumbnailUrl(url: string) {
