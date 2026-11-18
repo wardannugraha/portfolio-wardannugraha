@@ -121,9 +121,19 @@ export default function AdminDashboardClient({
   const [selectedMediaCategory, setSelectedMediaCategory] = useState("all");
   const [projSearchQuery, setProjSearchQuery] = useState("");
   const [mediaSearchQuery, setMediaSearchQuery] = useState("");
+  const [skillSearchQuery, setSkillSearchQuery] = useState("");
+  const [achSearchQuery, setAchSearchQuery] = useState("");
+  const [commSearchQuery, setCommSearchQuery] = useState("");
+
   const [projContentTab, setProjContentTab] = useState<"write" | "preview">("write");
+  const [achContentTab, setAchContentTab] = useState<"write" | "preview">("write");
+  const [commContentTab, setCommContentTab] = useState<"write" | "preview">("write");
+
   const [isDraggingProjImage, setIsDraggingProjImage] = useState(false);
   const [isDraggingMediaCover, setIsDraggingMediaCover] = useState(false);
+  const [isDraggingAboutPhoto, setIsDraggingAboutPhoto] = useState(false);
+  const [isDraggingAchImage, setIsDraggingAchImage] = useState(false);
+  const [isDraggingCommImage, setIsDraggingCommImage] = useState(false);
 
   const filteredProjects = projects.filter(p => {
     const matchesCat = selectedProjCategory === "all" || p.categoryId === selectedProjCategory;
@@ -302,7 +312,12 @@ export default function AdminDashboardClient({
 
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [selectedSkillCategory, setSelectedSkillCategory] = useState("all");
-  const filteredSkills = skills.filter(s => selectedSkillCategory === "all" || s.category.toLowerCase() === selectedSkillCategory.toLowerCase());
+  const filteredSkills = skills.filter(s => {
+    const matchesCat = selectedSkillCategory === "all" || s.category.toLowerCase() === selectedSkillCategory.toLowerCase();
+    const query = skillSearchQuery.trim().toLowerCase();
+    const matchesQuery = !query || s.name.toLowerCase().includes(query) || s.category.toLowerCase().includes(query);
+    return matchesCat && matchesQuery;
+  });
   const [customCategories, setCustomCategories] = useState<string[]>(parsedSkillCategories);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [skillName, setSkillName] = useState("");
@@ -312,6 +327,10 @@ export default function AdminDashboardClient({
 
   // Achievement Form States
   const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
+  const filteredAchievements = achievements.filter(a => {
+    const query = achSearchQuery.trim().toLowerCase();
+    return !query || a.title.toLowerCase().includes(query) || a.issuer.toLowerCase().includes(query) || (a.description && a.description.toLowerCase().includes(query));
+  });
   const [achTitle, setAchTitle] = useState("");
   const [achIssuer, setAchIssuer] = useState("");
   const [achDate, setAchDate] = useState("");
@@ -348,6 +367,10 @@ export default function AdminDashboardClient({
 
   // Community Activity Form States
   const [community, setCommunity] = useState<CommunityActivity[]>(initialCommunity);
+  const filteredCommunity = community.filter(c => {
+    const query = commSearchQuery.trim().toLowerCase();
+    return !query || c.title.toLowerCase().includes(query) || c.role.toLowerCase().includes(query) || c.organization.toLowerCase().includes(query) || (c.description && c.description.toLowerCase().includes(query));
+  });
   const [commTitle, setCommTitle] = useState("");
   const [commRole, setCommRole] = useState("");
   const [commOrg, setCommOrg] = useState("");
@@ -1433,31 +1456,164 @@ export default function AdminDashboardClient({
               <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Quick statistics and management controls</p>
             </div>
 
-            {/* Stats */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Core Projects</span>
-                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{projects.length}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Builder items in DB</p>
+            {/* Quick Actions Bar */}
+            <div className="glass-card rounded-2xl p-5 border border-zinc-200/80 dark:border-white/5 shadow-sm">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                  <h2 className="text-xs font-bold text-zinc-950 dark:text-white uppercase tracking-wider">Tindakan Cepat (Quick Actions)</h2>
+                </div>
+                <span className="text-[11px] text-zinc-500 hidden sm:inline">Akses cepat pembuatan konten</span>
               </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetProjectForm();
+                    setEditingProjId(null);
+                    if (selectedProjCategory !== "all") setProjCatId(selectedProjCategory);
+                    setActiveTab("projects");
+                    setIsProjModalOpen(true);
+                  }}
+                  className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white flex items-center gap-2.5 transition-all text-xs font-semibold cursor-pointer group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">Tambah Proyek</span>
+                </button>
 
-              <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Photography Media</span>
-                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{media.length}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Creator items in DB</p>
-              </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetMediaForm();
+                    setEditingMediaId(null);
+                    if (selectedMediaCategory !== "all") setMediaCatId(selectedMediaCategory);
+                    setActiveTab("media");
+                    setIsMediaModalOpen(true);
+                  }}
+                  className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white flex items-center gap-2.5 transition-all text-xs font-semibold cursor-pointer group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">Tambah Media</span>
+                </button>
 
-              <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Expertise Skills</span>
-                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{skills.length}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Interactive skills stored</p>
-              </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetAchForm();
+                    setEditingAchId(null);
+                    setActiveTab("achievements");
+                    setIsAchModalOpen(true);
+                  }}
+                  className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white flex items-center gap-2.5 transition-all text-xs font-semibold cursor-pointer group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">Tambah Kredensial</span>
+                </button>
 
-              <div className="glass-card p-6 rounded-2xl relative overflow-hidden">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Credentials & Prestasi</span>
-                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2">{achievements.length}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Certifications & Awards</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetCommForm();
+                    setEditingCommId(null);
+                    setActiveTab("community");
+                    setIsCommModalOpen(true);
+                  }}
+                  className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white flex items-center gap-2.5 transition-all text-xs font-semibold cursor-pointer group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">Tambah Organisasi</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("about");
+                    setIsEditingAbout(true);
+                  }}
+                  className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white flex items-center gap-2.5 transition-all text-xs font-semibold cursor-pointer group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center flex-shrink-0 group-hover:bg-fuchsia-600 group-hover:text-white transition-colors">
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="truncate">Ubah Bio Profil</span>
+                </button>
               </div>
+            </div>
+
+            {/* Clickable Interactive Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <button
+                type="button"
+                onClick={() => setActiveTab("projects")}
+                className="glass-card p-5 rounded-2xl relative overflow-hidden text-left hover:border-violet-500/50 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Projects</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" />
+                </div>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2 group-hover:scale-[1.03] origin-left transition-transform">{projects.length}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Builder entries &rarr;</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("media")}
+                className="glass-card p-5 rounded-2xl relative overflow-hidden text-left hover:border-emerald-500/50 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Media</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
+                </div>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2 group-hover:scale-[1.03] origin-left transition-transform">{media.length}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Creator entries &rarr;</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("skills")}
+                className="glass-card p-5 rounded-2xl relative overflow-hidden text-left hover:border-indigo-500/50 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Skills</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                </div>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2 group-hover:scale-[1.03] origin-left transition-transform">{skills.length}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Interactive skills &rarr;</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("achievements")}
+                className="glass-card p-5 rounded-2xl relative overflow-hidden text-left hover:border-amber-500/50 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Credentials</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
+                </div>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2 group-hover:scale-[1.03] origin-left transition-transform">{achievements.length}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Certifications &rarr;</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("community")}
+                className="glass-card p-5 rounded-2xl relative overflow-hidden text-left hover:border-blue-500/50 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Community</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                </div>
+                <p className="text-3xl font-extrabold text-zinc-950 dark:text-white mt-2 group-hover:scale-[1.03] origin-left transition-transform">{community.length}</p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Leadership roles &rarr;</p>
+              </button>
             </div>
 
             {/* Admin Notifications / Info Panel */}
@@ -3127,50 +3283,135 @@ export default function AdminDashboardClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
-                    Profile Photo *
-                  </label>
-                  <div className="flex flex-col gap-3">
-                    <input
-                      type="text" required value={aboutPhoto} onChange={e => setAboutPhoto(e.target.value)}
-                      placeholder="/uploads/portrait.jpg or external https:// url"
-                      className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
-                    />
-                    <div className="flex gap-2">
-                      <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
-                        {uploadingAboutPhoto ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
-                        ) : (
-                          <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
-                        )}
-                        <span>Upload Photo</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "about")}
-                          disabled={uploadingAboutPhoto}
-                        />
-                      </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                      Profile Photo *
+                    </label>
+                    {aboutPhoto && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setOnSelectAsset(() => (url: string) => setAboutPhoto(url));
-                          setIsAssetPickerOpen(true);
-                        }}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        onClick={() => setAboutPhoto("")}
+                        className="text-[11px] text-red-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                       >
-                        <Camera className="w-3.5 h-3.5" />
-                        <span>Pilih Galeri</span>
+                        <X className="w-3 h-3" /> Hapus Foto
                       </button>
-                    </div>
+                    )}
+                  </div>
+
+                  {/* Drag & Drop Visual Box for Profile Photo */}
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingAboutPhoto(true);
+                    }}
+                    onDragLeave={() => setIsDraggingAboutPhoto(false)}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      setIsDraggingAboutPhoto(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        await uploadFilesList(Array.from(e.dataTransfer.files), "about");
+                      }
+                    }}
+                    className={`relative rounded-2xl border-2 border-dashed p-4 transition-all duration-200 text-center ${
+                      isDraggingAboutPhoto
+                        ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
+                        : aboutPhoto
+                        ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]"
+                        : "border-zinc-300 dark:border-white/15 hover:border-violet-500/50 bg-zinc-100/50 dark:bg-white/[0.02]"
+                    }`}
+                  >
+                    {uploadingAboutPhoto ? (
+                      <div className="py-6 flex flex-col items-center justify-center gap-2 text-violet-600 dark:text-violet-400">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                        <span className="text-xs font-medium">Mengompres & Mengunggah foto profil...</span>
+                      </div>
+                    ) : aboutPhoto ? (
+                      <div className="flex items-center gap-4 text-left">
+                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-black/5 dark:bg-white/5 border border-zinc-200 dark:border-white/10 flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={aboutPhoto}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">
+                            Foto Profil Terpasang
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                            {aboutPhoto}
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <label className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1">
+                              <UploadCloud className="w-3 h-3" /> Ganti File
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "about")}
+                              />
+                            </label>
+                            <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOnSelectAsset(() => (url: string) => setAboutPhoto(url));
+                                setIsAssetPickerOpen(true);
+                              }}
+                              className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <Camera className="w-3 h-3" /> Dari Galeri
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-4 flex flex-col items-center justify-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                          <UploadCloud className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                            Drag & drop foto ke sini, atau{" "}
+                            <label className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
+                              pilih file
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "about")}
+                              />
+                            </label>
+                          </p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">
+                            PNG, JPG, WebP otomatis dikompresi
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOnSelectAsset(() => (url: string) => setAboutPhoto(url));
+                            setIsAssetPickerOpen(true);
+                          }}
+                          className="mt-1 px-3 py-1.5 rounded-lg bg-zinc-200/70 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Camera className="w-3.5 h-3.5" /> Pilih dari Galeri DB
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
-                    Bio Description *
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                      Bio Description *
+                    </label>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
+                      {aboutMe.trim() ? aboutMe.trim().split(/\s+/).length : 0} kata &bull; {aboutMe.length} karakter
+                    </span>
+                  </div>
                   <textarea
                     required
                     rows={8}
@@ -3179,20 +3420,33 @@ export default function AdminDashboardClient({
                     placeholder="Enter your personal brand narrative..."
                     className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm leading-relaxed transition-all duration-200"
                   />
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5">
+                    💡 Rekomendasi: 250 - 600 karakter untuk narasi intro personal branding yang padat dan menarik.
+                  </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={updatingAbout}
-                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
-                >
-                  {updatingAbout ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Check className="w-4 h-4" />
-                  )}
-                  Save Profile Settings
-                </button>
+                {/* Sticky Modal Action Footer */}
+                <div className="pt-4 border-t border-zinc-200 dark:border-white/5 sticky bottom-0 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md pb-1 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingAbout(false)}
+                    className="px-5 py-3 rounded-xl border border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updatingAbout}
+                    className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                  >
+                    {updatingAbout ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    <span>Simpan Perubahan Profil</span>
+                  </button>
+                </div>
               </form>
             </AdminEditModal>
           </div>
@@ -3210,6 +3464,9 @@ export default function AdminDashboardClient({
                 onClick={() => {
                   resetSkillForm();
                   setEditingSkillId(null);
+                  if (selectedSkillCategory !== "all") {
+                    setSkillCategory(selectedSkillCategory);
+                  }
                   setIsSkillModalOpen(true);
                 }}
                 className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0 shadow-md"
@@ -3284,23 +3541,35 @@ export default function AdminDashboardClient({
                     Drag & Drop reorder enabled
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
-                  <select
-                    value={selectedSkillCategory}
-                    onChange={(e) => setSelectedSkillCategory(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
-                  >
-                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories ({skills.length})</option>
-                    {customCategories.map((cat) => {
-                      const count = skills.filter(s => s.category.toLowerCase() === cat.toLowerCase()).length;
-                      return (
-                        <option key={cat} value={cat} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">
-                          {cat} ({count})
-                        </option>
-                      );
-                    })}
-                  </select>
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-56">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama skill..."
+                      value={skillSearchQuery}
+                      onChange={(e) => setSkillSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:border-violet-500 transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Kategori:</span>
+                    <select
+                      value={selectedSkillCategory}
+                      onChange={(e) => setSelectedSkillCategory(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                    >
+                      <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">Semua ({skills.length})</option>
+                      {customCategories.map((cat) => {
+                        const count = skills.filter(s => s.category.toLowerCase() === cat.toLowerCase()).length;
+                        return (
+                          <option key={cat} value={cat} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">
+                            {cat} ({count})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -3552,9 +3821,28 @@ export default function AdminDashboardClient({
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">
-                      Expertise Rating: <span className="text-violet-600 dark:text-violet-400 font-bold">{skillLevel}%</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                        Expertise Rating: <span className="text-violet-600 dark:text-violet-400 font-bold">{skillLevel}%</span>
+                      </label>
+                      {skillLevel >= 90 ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          Mastery / Expert
+                        </span>
+                      ) : skillLevel >= 75 ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                          Advanced
+                        </span>
+                      ) : skillLevel >= 55 ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          Intermediate
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-500/20">
+                          Fundamental
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-4 py-2">
                       <input
                         type="range" min="10" max="100" step="5"
@@ -3576,13 +3864,28 @@ export default function AdminDashboardClient({
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
+                </div>
 
+                {/* Sticky Action Footer */}
+                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/5 sticky bottom-0 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md pb-1 flex items-center justify-end gap-3">
                   <button
-                    type="submit" disabled={loading}
-                    className="w-full mt-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    type="button"
+                    onClick={() => {
+                      setIsSkillModalOpen(false);
+                      setEditingSkillId(null);
+                      resetSkillForm();
+                    }}
+                    className="px-5 py-3 rounded-xl border border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingSkillId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    {editingSkillId ? "Save Changes" : "Create Skill Entry"}
+                    <span>{editingSkillId ? "Simpan Perubahan Skill" : "Tambah Skill Baru"}</span>
                   </button>
                 </div>
               </form>
@@ -3613,9 +3916,28 @@ export default function AdminDashboardClient({
 
             {/* List */}
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
-              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Credentials ({achievements.length})</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Credentials ({filteredAchievements.length})</h2>
+                  <span className="hidden sm:inline-flex text-[11px] text-violet-600 dark:text-violet-400 font-medium bg-violet-500/10 px-2.5 py-0.5 rounded-full border border-violet-500/20 items-center gap-1">
+                    <GripVertical className="w-3 h-3" />
+                    Drag & Drop reorder enabled
+                  </span>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cari judul atau penerbit..."
+                    value={achSearchQuery}
+                    onChange={(e) => setAchSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:border-violet-500 transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
-                <table className="min-w-[780px] w-full text-left border-collapse">
+                <table className="min-w-[840px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
@@ -3623,11 +3945,11 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 min-w-[140px]">Issuer</th>
                       <th className="py-3 px-4 w-28">Date</th>
                       <th className="py-3 px-4 w-28 text-center">Order</th>
-                      <th className="py-3 px-4 w-40 text-right whitespace-nowrap">Aksi</th>
+                      <th className="py-3 px-4 w-44 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {achievements.map((a, idx) => {
+                    {filteredAchievements.map((a, idx) => {
                       const isDragging = draggedItemId === a.id;
                       const isDragOver = dragOverItemId === a.id && !isDragging;
 
@@ -3693,7 +4015,7 @@ export default function AdminDashboardClient({
                             <button
                               type="button"
                               onClick={() => handleMoveItem("achievements", a.id, "down")}
-                              disabled={idx === achievements.length - 1}
+                              disabled={idx === filteredAchievements.length - 1}
                               className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
@@ -3712,6 +4034,33 @@ export default function AdminDashboardClient({
                             >
                               <ExternalLink className="w-4 h-4" />
                             </a>
+                            <button
+                              onClick={() => {
+                                setEditingAchId(null);
+                                setAchTitle(`${a.title} (Copy)`);
+                                setAchIssuer(a.issuer);
+                                setAchDate(a.date ? new Date(a.date).toISOString().split("T")[0] : "");
+                                setAchDesc(a.description || "");
+                                setAchImage(a.image || "");
+                                setAchContent(a.content || "");
+                                setAchOrder(a.order || 0);
+                                let parsedLinks = [];
+                                if (a.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(a.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse achievement links", e);
+                                  }
+                                }
+                                setAchLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+                                setIsAchModalOpen(true);
+                                showNotification("Data kredensial disalin ke form! Silakan sesuaikan lalu Simpan.");
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Duplikat / Salin Kredensial"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => {
                                 setEditingAchId(a.id);
@@ -3750,13 +4099,16 @@ export default function AdminDashboardClient({
                       </tr>
                     );
                   })}
-                  {achievements.length === 0 && (
+                  {filteredAchievements.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
-                        <p className="text-sm font-medium">Belum ada data prestasi atau penghargaan.</p>
+                        <p className="text-sm font-medium">
+                          {achSearchQuery ? `Tidak ada kredensial yang cocok dengan "${achSearchQuery}"` : "Belum ada data prestasi atau penghargaan."}
+                        </p>
                         <button
                           type="button"
                           onClick={() => {
+                            setAchSearchQuery("");
                             resetAchForm();
                             setEditingAchId(null);
                             setIsAchModalOpen(true);
@@ -3828,43 +4180,125 @@ export default function AdminDashboardClient({
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
-                  {/* Certificate Image Field with file upload selector */}
+                  {/* Certificate Image Field with file upload selector & Drag & Drop */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Certificate Image / Photo (Optional)</label>
-                    <div className="flex flex-col gap-3">
-                      <input
-                        type="text" value={achImage} onChange={e => setAchImage(e.target.value)}
-                        placeholder="/uploads/cert1.jpg or external url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
-                      />
-                      <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
-                          {uploadingAchImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
-                          ) : (
-                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
-                          )}
-                          <span>Upload File</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e, "achievement")}
-                            disabled={uploadingAchImage}
-                          />
-                        </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                        Certificate Image / Photo (Optional)
+                      </label>
+                      {achImage && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setOnSelectAsset(() => (url: string) => setAchImage(url));
-                            setIsAssetPickerOpen(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          onClick={() => setAchImage("")}
+                          className="text-[11px] text-red-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Pilih Galeri</span>
+                          <X className="w-3 h-3" /> Hapus Foto
                         </button>
-                      </div>
+                      )}
+                    </div>
+
+                    {/* Drag & Drop Visual Box */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingAchImage(true);
+                      }}
+                      onDragLeave={() => setIsDraggingAchImage(false)}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        setIsDraggingAchImage(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          await uploadFilesList(Array.from(e.dataTransfer.files), "achievement");
+                        }
+                      }}
+                      className={`relative rounded-2xl border-2 border-dashed p-4 transition-all duration-200 text-center ${
+                        isDraggingAchImage
+                          ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
+                          : achImage
+                          ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]"
+                          : "border-zinc-300 dark:border-white/15 hover:border-violet-500/50 bg-zinc-100/50 dark:bg-white/[0.02]"
+                      }`}
+                    >
+                      {uploadingAchImage ? (
+                        <div className="py-6 flex flex-col items-center justify-center gap-2 text-violet-600 dark:text-violet-400">
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                          <span className="text-xs font-medium">Mengompres & Mengunggah sertifikat...</span>
+                        </div>
+                      ) : achImage ? (
+                        <div className="flex items-center gap-4 text-left">
+                          <div className="relative w-24 h-16 sm:w-28 sm:h-20 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-zinc-200 dark:border-white/10 flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={achImage}
+                              alt="Certificate preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">
+                              Sertifikat Terpasang
+                            </p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                              {achImage}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <label className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1">
+                                <UploadCloud className="w-3 h-3" /> Ganti File
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "achievement")}
+                                />
+                              </label>
+                              <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOnSelectAsset(() => (url: string) => setAchImage(url));
+                                  setIsAssetPickerOpen(true);
+                                }}
+                                className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Camera className="w-3 h-3" /> Dari Galeri
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-4 flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                            <UploadCloud className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                              Drag & drop sertifikat ke sini, atau{" "}
+                              <label className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
+                                pilih file
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "achievement")}
+                                />
+                              </label>
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                              PNG, JPG, WebP otomatis dikompresi
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOnSelectAsset(() => (url: string) => setAchImage(url));
+                              setIsAssetPickerOpen(true);
+                            }}
+                            className="mt-1 px-3 py-1.5 rounded-lg bg-zinc-200/70 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Camera className="w-3.5 h-3.5" /> Pilih dari Galeri DB
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3872,8 +4306,38 @@ export default function AdminDashboardClient({
                 <div className="space-y-6">
                   {/* Markdown Editor Toolbar */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Content / Details Page Markdown</label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-3">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                          Rich Content / Details Page Markdown
+                        </label>
+                        <div className="inline-flex items-center bg-zinc-200/80 dark:bg-white/10 rounded-lg p-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setAchContentTab("write")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                              achContentTab === "write"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            Write
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAchContentTab("preview")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                              achContentTab === "preview"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            <Eye className="w-3 h-3" />
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex gap-3">
                         <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
@@ -3906,7 +4370,9 @@ export default function AdminDashboardClient({
                         </button>
                       </div>
                     </div>
-                    <div className="flex flex-col">
+
+                    {achContentTab === "write" ? (
+                      <div className="flex flex-col">
                       <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
                         <button
                           type="button"
@@ -4062,6 +4528,11 @@ export default function AdminDashboardClient({
                         className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
                       />
                     </div>
+                  ) : (
+                    <div className="w-full min-h-[220px] max-h-[360px] overflow-y-auto px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 text-sm">
+                      {renderAdminMarkdownPreview(achContent)}
+                    </div>
+                  )}
                   </div>
                 </div>
 
@@ -4155,13 +4626,26 @@ export default function AdminDashboardClient({
                   )}
                 </div>
 
-                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/10">
+                {/* Sticky Action Footer */}
+                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/5 sticky bottom-0 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md pb-1 flex items-center justify-end gap-3">
                   <button
-                    type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    type="button"
+                    onClick={() => {
+                      setIsAchModalOpen(false);
+                      setEditingAchId(null);
+                      resetAchForm();
+                    }}
+                    className="px-5 py-3 rounded-xl border border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingAchId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    {editingAchId ? "Save Changes" : "Create Credential Entry"}
+                    <span>{editingAchId ? "Simpan Perubahan Kredensial" : "Buat Kredensial Baru"}</span>
                   </button>
                 </div>
               </form>
@@ -4192,9 +4676,28 @@ export default function AdminDashboardClient({
 
             {/* List */}
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
-              <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Activities ({community.length})</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Activities ({filteredCommunity.length})</h2>
+                  <span className="hidden sm:inline-flex text-[11px] text-violet-600 dark:text-violet-400 font-medium bg-violet-500/10 px-2.5 py-0.5 rounded-full border border-violet-500/20 items-center gap-1">
+                    <GripVertical className="w-3 h-3" />
+                    Drag & Drop reorder enabled
+                  </span>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cari aktivitas atau organisasi..."
+                    value={commSearchQuery}
+                    onChange={(e) => setCommSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:border-violet-500 transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
-                <table className="min-w-[820px] w-full text-left border-collapse">
+                <table className="min-w-[860px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
@@ -4203,13 +4706,24 @@ export default function AdminDashboardClient({
                       <th className="py-3 px-4 min-w-[140px]">Organization</th>
                       <th className="py-3 px-4 w-28">Date</th>
                       <th className="py-3 px-4 w-28 text-center">Order</th>
-                      <th className="py-3 px-4 w-36 text-right whitespace-nowrap">Aksi</th>
+                      <th className="py-3 px-4 w-44 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
-                    {community.map((c, idx) => {
+                    {filteredCommunity.map((c, idx) => {
                       const isDragging = draggedItemId === c.id;
                       const isDragOver = dragOverItemId === c.id && !isDragging;
+
+                      // Check if any link exists to show external preview
+                      let firstUrl = "";
+                      if (c.links) {
+                        try {
+                          const parsed = JSON.parse(c.links);
+                          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.url) {
+                            firstUrl = parsed[0].url;
+                          }
+                        } catch {}
+                      }
 
                       return (
                         <tr
@@ -4272,7 +4786,7 @@ export default function AdminDashboardClient({
                             <button
                               type="button"
                               onClick={() => handleMoveItem("community", c.id, "down")}
-                              disabled={idx === community.length - 1}
+                              disabled={idx === filteredCommunity.length - 1}
                               className="p-1 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                               title="Geser Turun"
                             >
@@ -4282,6 +4796,45 @@ export default function AdminDashboardClient({
                         </td>
                         <td className="py-3 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                            {firstUrl && (
+                              <a
+                                href={firstUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-zinc-500 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                title="Buka Tautan Dokumentasi (Tab Baru)"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                            )}
+                            <button
+                              onClick={() => {
+                                setEditingCommId(null);
+                                setCommTitle(`${c.title} (Copy)`);
+                                setCommRole(c.role);
+                                setCommOrg(c.organization);
+                                setCommDateRange(c.dateRange);
+                                setCommDesc(c.description || "");
+                                setCommImage(c.image || "");
+                                setCommContent(c.content || "");
+                                setCommOrder(c.order || 0);
+                                let parsedLinks = [];
+                                if (c.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(c.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse community links:", e);
+                                  }
+                                }
+                                setCommLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+                                setIsCommModalOpen(true);
+                                showNotification("Data aktivitas disalin ke form! Silakan sesuaikan lalu Simpan.");
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Duplikat / Salin Aktivitas"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => {
                                 setEditingCommId(c.id);
@@ -4301,7 +4854,7 @@ export default function AdminDashboardClient({
                                     console.error("Failed to parse community links:", e);
                                   }
                                 }
-                                setCommLinks(parsedLinks);
+                                setCommLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
                                 setIsCommModalOpen(true);
                               }}
                               className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
@@ -4321,13 +4874,16 @@ export default function AdminDashboardClient({
                       </tr>
                     );
                   })}
-                  {community.length === 0 && (
+                  {filteredCommunity.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
-                        <p className="text-sm font-medium">Belum ada pengalaman organisasi atau kepemimpinan.</p>
+                        <p className="text-sm font-medium">
+                          {commSearchQuery ? `Tidak ada aktivitas yang cocok dengan "${commSearchQuery}"` : "Belum ada pengalaman organisasi atau kepemimpinan."}
+                        </p>
                         <button
                           type="button"
                           onClick={() => {
+                            setCommSearchQuery("");
                             resetCommForm();
                             setEditingCommId(null);
                             setIsCommModalOpen(true);
@@ -4398,43 +4954,125 @@ export default function AdminDashboardClient({
                     />
                     <p className="text-[10px] text-zinc-500 mt-1">Nilai lebih kecil (misal: 0, 1, 2) akan ditampilkan lebih dulu/di sebelah kiri.</p>
                   </div>
-                  {/* Image field */}
+                  {/* Activity Image Field with file upload selector & Drag & Drop */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Activity Image / Certificate Photo (Optional)</label>
-                    <div className="flex flex-col gap-3">
-                      <input
-                        type="text" value={commImage} onChange={e => setCommImage(e.target.value)}
-                        placeholder="/uploads/activity1.jpg or external url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
-                      />
-                      <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
-                          {uploadingCommImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
-                          ) : (
-                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
-                          )}
-                          <span>Upload File</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e, "community")}
-                            disabled={uploadingCommImage}
-                          />
-                        </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                        Activity Image / Certificate Photo (Optional)
+                      </label>
+                      {commImage && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setOnSelectAsset(() => (url: string) => setCommImage(url));
-                            setIsAssetPickerOpen(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          onClick={() => setCommImage("")}
+                          className="text-[11px] text-red-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Pilih Galeri</span>
+                          <X className="w-3 h-3" /> Hapus Foto
                         </button>
-                      </div>
+                      )}
+                    </div>
+
+                    {/* Drag & Drop Visual Box */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingCommImage(true);
+                      }}
+                      onDragLeave={() => setIsDraggingCommImage(false)}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        setIsDraggingCommImage(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          await uploadFilesList(Array.from(e.dataTransfer.files), "community");
+                        }
+                      }}
+                      className={`relative rounded-2xl border-2 border-dashed p-4 transition-all duration-200 text-center ${
+                        isDraggingCommImage
+                          ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
+                          : commImage
+                          ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]"
+                          : "border-zinc-300 dark:border-white/15 hover:border-violet-500/50 bg-zinc-100/50 dark:bg-white/[0.02]"
+                      }`}
+                    >
+                      {uploadingCommImage ? (
+                        <div className="py-6 flex flex-col items-center justify-center gap-2 text-violet-600 dark:text-violet-400">
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                          <span className="text-xs font-medium">Mengompres & Mengunggah foto kegiatan...</span>
+                        </div>
+                      ) : commImage ? (
+                        <div className="flex items-center gap-4 text-left">
+                          <div className="relative w-24 h-16 sm:w-28 sm:h-20 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-zinc-200 dark:border-white/10 flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={commImage}
+                              alt="Activity preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">
+                              Foto Kegiatan Terpasang
+                            </p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                              {commImage}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <label className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1">
+                                <UploadCloud className="w-3 h-3" /> Ganti File
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "community")}
+                                />
+                              </label>
+                              <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOnSelectAsset(() => (url: string) => setCommImage(url));
+                                  setIsAssetPickerOpen(true);
+                                }}
+                                className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Camera className="w-3 h-3" /> Dari Galeri
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-4 flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                            <UploadCloud className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                              Drag & drop foto kegiatan ke sini, atau{" "}
+                              <label className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
+                                pilih file
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "community")}
+                                />
+                              </label>
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                              PNG, JPG, WebP otomatis dikompresi
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOnSelectAsset(() => (url: string) => setCommImage(url));
+                              setIsAssetPickerOpen(true);
+                            }}
+                            className="mt-1 px-3 py-1.5 rounded-lg bg-zinc-200/70 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Camera className="w-3.5 h-3.5" /> Pilih dari Galeri DB
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -4450,8 +5088,38 @@ export default function AdminDashboardClient({
                   </div>
                   {/* Rich Content Markdown Editor */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Content / Details Page Markdown</label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-3">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                          Rich Content / Details Page Markdown
+                        </label>
+                        <div className="inline-flex items-center bg-zinc-200/80 dark:bg-white/10 rounded-lg p-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setCommContentTab("write")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                              commContentTab === "write"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            Write
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCommContentTab("preview")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                              commContentTab === "preview"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            <Eye className="w-3 h-3" />
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex gap-3">
                         <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
@@ -4484,7 +5152,9 @@ export default function AdminDashboardClient({
                         </button>
                       </div>
                     </div>
-                    <div className="flex flex-col">
+
+                    {commContentTab === "write" ? (
+                      <div className="flex flex-col">
                       <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
                         <button
                           type="button"
@@ -4627,6 +5297,11 @@ export default function AdminDashboardClient({
                         className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
                       />
                     </div>
+                  ) : (
+                    <div className="w-full min-h-[220px] max-h-[360px] overflow-y-auto px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 text-sm">
+                      {renderAdminMarkdownPreview(commContent)}
+                    </div>
+                  )}
                   </div>
                 </div>
 
@@ -4720,13 +5395,26 @@ export default function AdminDashboardClient({
                   )}
                 </div>
 
-                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/10">
+                {/* Sticky Action Footer */}
+                <div className="lg:col-span-2 pt-4 border-t border-zinc-200 dark:border-white/5 sticky bottom-0 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md pb-1 flex items-center justify-end gap-3">
                   <button
-                    type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    type="button"
+                    onClick={() => {
+                      setIsCommModalOpen(false);
+                      setEditingCommId(null);
+                      resetCommForm();
+                    }}
+                    className="px-5 py-3 rounded-xl border border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingCommId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    {editingCommId ? "Save Changes" : "Create Activity Entry"}
+                    <span>{editingCommId ? "Simpan Perubahan Aktivitas" : "Buat Aktivitas Baru"}</span>
                   </button>
                 </div>
               </form>
@@ -4793,6 +5481,11 @@ export default function AdminDashboardClient({
                               if (val.includes("github.com")) updated[idx].icon = "github";
                               else if (val.includes("instagram.com")) updated[idx].icon = "instagram";
                               else if (val.includes("linkedin.com")) updated[idx].icon = "linkedin";
+                              else if (val.includes("youtube.com") || val.includes("youtu.be")) updated[idx].icon = "youtube";
+                              else if (val.includes("tiktok.com")) updated[idx].icon = "tiktok";
+                              else if (val.includes("twitter.com") || val.includes("x.com")) updated[idx].icon = "twitter";
+                              else if (val.includes("t.me") || val.includes("telegram")) updated[idx].icon = "telegram";
+                              else if (val.endsWith(".pdf") || val.includes("drive.google.com") || val.includes("cv") || val.includes("resume")) updated[idx].icon = "file";
                               else if (val.includes("wa.me") || val.includes("whatsapp") || val.startsWith("tel:")) updated[idx].icon = "phone";
                               else if (val.startsWith("mailto:") || val.includes("@")) updated[idx].icon = "mail";
                             }
@@ -4824,17 +5517,33 @@ export default function AdminDashboardClient({
                             updated[idx].icon = e.target.value;
                             setContactLinks(updated);
                           }}
-                          className="w-full sm:w-44 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
+                          className="w-full sm:w-48 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/20 focus:border-violet-500 outline-none text-zinc-900 dark:text-white text-xs transition-all duration-200"
                         >
                           <option value="mail" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">✉️ Email (mail)</option>
                           <option value="phone" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📞 WhatsApp / Phone (phone)</option>
                           <option value="linkedin" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💼 LinkedIn (linkedin)</option>
                           <option value="github" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">💻 GitHub (github)</option>
                           <option value="instagram" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📸 Instagram (instagram)</option>
+                          <option value="youtube" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎥 YouTube (youtube)</option>
+                          <option value="tiktok" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🎵 TikTok (tiktok)</option>
+                          <option value="twitter" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🐦 X / Twitter (twitter)</option>
+                          <option value="telegram" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">✈️ Telegram (telegram)</option>
+                          <option value="file" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">📄 CV / Dokumen (file)</option>
                           <option value="globe" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">🌐 Website (globe)</option>
                         </select>
                       </div>
                       <div className="pt-4 sm:pt-5 flex items-center gap-1">
+                        {link.url && (
+                          <a
+                            href={link.url.startsWith("http") || link.url.startsWith("mailto:") || link.url.startsWith("tel:") ? link.url : `https://${link.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-zinc-200 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors"
+                            title="Uji / Buka Tautan di Tab Baru"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
                         <button
                           type="button"
                           disabled={idx === 0}
