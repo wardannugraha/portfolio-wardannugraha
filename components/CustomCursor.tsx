@@ -17,9 +17,8 @@ export default function CustomCursor() {
     setMounted(true);
 
     const checkDeviceCapability = () => {
-      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       const isSmallScreen = window.innerWidth < 768;
-      setIsMobile(hasTouch || isSmallScreen);
+      setIsMobile(isSmallScreen);
     };
 
     checkDeviceCapability();
@@ -141,23 +140,19 @@ export default function CustomCursor() {
       {/* Trailing Outer Ring */}
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 rounded-full pointer-events-none z-[999999] -translate-x-1/2 -translate-y-1/2 will-change-transform transition-[width,height,background-color,border-color,opacity] duration-300 ease-out border border-violet-500/70 dark:border-violet-400/80 shadow-[0_0_14px_rgba(139,92,246,0.35)] ${
+        className={`fixed top-0 left-0 rounded-full pointer-events-none z-[999999] mix-blend-difference -translate-x-1/2 -translate-y-1/2 will-change-transform transition-[width,height,background-color,opacity] duration-300 ease-out ${
           isHovered
-            ? "w-12 h-12 bg-violet-500/15 dark:bg-violet-400/20 border-violet-500 dark:border-violet-300 scale-105"
+            ? "w-14 h-14 bg-white"
             : isClicked
-            ? "w-5 h-5 bg-violet-500/20 dark:bg-violet-400/25 border-violet-600 scale-95"
-            : "w-8 h-8 bg-violet-500/5 dark:bg-violet-400/10"
+            ? "w-4 h-4 bg-white"
+            : "w-8 h-8 bg-white"
         } ${isVisible ? "opacity-100" : "opacity-0"}`}
       />
       {/* Precision Center Dot */}
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 rounded-full pointer-events-none z-[999999] -translate-x-1/2 -translate-y-1/2 will-change-transform transition-[width,height,opacity,transform] duration-200 ease-out bg-violet-600 dark:bg-white shadow-[0_0_8px_rgba(139,92,246,0.8)] ring-1 ring-white/90 dark:ring-black/60 ${
-          isHovered 
-            ? "w-2 h-2 opacity-90 scale-125" 
-            : isClicked 
-            ? "w-1 h-1 opacity-100" 
-            : "w-1.5 h-1.5 opacity-100"
+        className={`fixed top-0 left-0 rounded-full bg-white pointer-events-none z-[999999] mix-blend-difference -translate-x-1/2 -translate-y-1/2 will-change-transform transition-[width,height,opacity] duration-200 ease-out ${
+          isHovered ? "w-1.5 h-1.5 opacity-60" : isClicked ? "w-1 h-1" : "w-1.5 h-1.5"
         } ${isVisible ? "opacity-100" : "opacity-0"}`}
       />
     </>
