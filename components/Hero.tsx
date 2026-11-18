@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowDown, Code, Camera, BookOpen, Award } from "lucide-react";
+import { ArrowDown, Code, Camera, BookOpen, Award, ArrowUpRight } from "lucide-react";
 import PlexusEffect from "@/components/PlexusEffect";
+
+const ROTATING_WORDS = [
+  "Modern Web Apps",
+  "Intuitive UI/UX",
+  "Cinematic Videos",
+  "Creative Visuals",
+];
 
 const badges = [
   { 
@@ -109,6 +116,39 @@ export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [mouseCoords, setMouseCoords] = useState({ x: -1000, y: -1000 });
 
+  // Dynamic Typewriter state
+  const [currentWordIdx, setCurrentWordIdx] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentFullWord = ROTATING_WORDS[currentWordIdx];
+    let timer: NodeJS.Timeout;
+
+    if (!isDeleting) {
+      if (displayText.length < currentFullWord.length) {
+        timer = setTimeout(() => {
+          setDisplayText(currentFullWord.slice(0, displayText.length + 1));
+        }, 85);
+      } else {
+        timer = setTimeout(() => {
+          setIsDeleting(true);
+        }, 2100);
+      }
+    } else {
+      if (displayText.length > 0) {
+        timer = setTimeout(() => {
+          setDisplayText(currentFullWord.slice(0, displayText.length - 1));
+        }, 40);
+      } else {
+        setIsDeleting(false);
+        setCurrentWordIdx((prev) => (prev + 1) % ROTATING_WORDS.length);
+      }
+    }
+
+    return () => clearTimeout(timer);
+  }, [displayText, isDeleting, currentWordIdx]);
+
   // Tracking mouse movement across the Hero section to reveal the grid spotlights
   const handleSectionMouseMove = (e: React.MouseEvent) => {
     if (!sectionRef.current) return;
@@ -213,71 +253,62 @@ export default function Hero() {
           animate="visible"
           className="flex flex-col items-center gap-8"
         >
-          {/* Tagline */}
-          <motion.span
-            variants={wordVariants}
-            className="text-xs font-semibold tracking-widest uppercase text-violet-600 dark:text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3.5 py-1.5 rounded-full z-10 animate-pulse"
-          >
-            Creative Technologist & Creator
-          </motion.span>
+          {/* Role Category Eyebrow */}
+          <motion.div variants={wordVariants} className="z-10">
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.24em] text-zinc-600 dark:text-zinc-400 bg-zinc-200/60 dark:bg-white/[0.04] border border-zinc-300/80 dark:border-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm shadow-xs font-semibold">
+              Full-Stack Developer & Creative Designer
+            </span>
+          </motion.div>
 
-          {/* Preheader name introduction */}
-          <motion.p
-            variants={wordVariants}
-            className="text-zinc-500 dark:text-zinc-400 font-semibold text-xs sm:text-sm tracking-widest uppercase z-10"
-          >
-            Hi, I&apos;m Wardan Nugraha Ahmad
-          </motion.p>
+          {/* Personal Identity Name (Refined Editorial Layout) */}
+          <motion.div variants={wordVariants} className="flex items-center gap-3 sm:gap-4 z-10 -mt-3">
+            <div className="h-px w-6 sm:w-10 bg-zinc-300 dark:bg-white/15" />
+            <p className="text-xs sm:text-sm font-semibold tracking-[0.16em] uppercase text-zinc-700 dark:text-zinc-300">
+              Wardan Nugraha Ahmad
+            </p>
+            <div className="h-px w-6 sm:w-10 bg-zinc-300 dark:bg-white/15" />
+          </motion.div>
 
-          {/* Staggered Word Reveal Headline */}
+          {/* Dynamic Headline (Natural Two-Line Flow without Layout Shift) */}
           <motion.h1
             variants={wordVariants}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.18] text-zinc-950 dark:text-white z-10 pb-2"
+            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.22] text-zinc-950 dark:text-white z-10 max-w-4xl"
           >
-            {"Creating Digital Experiences ".split(" ").map((w, i) => (
-              <motion.span key={i} variants={wordVariants} className="inline-block mr-2.5 pb-3">
-                {w}
-              </motion.span>
-            ))}
-            <br />
-            {"Through Design, Code & Visual Storytelling".split(" ").map((w, i) => {
-              const isGradient = w.includes("Design,") || w.includes("Code") || w.includes("Visual") || w.includes("Storytelling") || w.includes("&");
-              return (
-                <motion.span 
-                  key={i} 
-                  variants={wordVariants} 
-                  className={`inline-block mr-2.5 pb-3 ${isGradient ? "gradient-text-purple-blue" : ""}`}
-                >
-                  {w}
-                </motion.span>
-              );
-            })}
+            <span className="block">Bringing Digital Dreamscapes to Life,</span>
+            <span className="block mt-1 sm:mt-2 min-h-[1.25em]">
+              <span>Through </span>
+              <span className="text-violet-600 dark:text-violet-400">
+                {displayText || "\u00A0"}
+              </span>
+              <span className="inline-block w-[2.5px] sm:w-[3.5px] h-[0.85em] bg-violet-600 dark:bg-violet-400 ml-1 animate-pulse align-middle" />
+            </span>
           </motion.h1>
 
-          {/* Subheading */}
+          {/* Professional Subheading */}
           <motion.p
             variants={wordVariants}
-            className="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed font-light z-10"
+            className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-light z-10"
           >
-            I craft elegant solutions by bridging the gap between design and technology. 
-            Designing, building, and contributing to high-impact digital products.
+            Software developer & visual creator with enterprise full-stack experience.
+            Architecting performant web platforms, refined user interfaces, and compelling visual media.
           </motion.p>
 
           {/* CTAs */}
           <motion.div variants={wordVariants} className="flex flex-col sm:flex-row gap-4 mt-2 z-10">
             <a
               href="#work"
-              className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold px-8 py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg inline-flex items-center justify-center gap-2 group cursor-pointer"
+              className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold px-8 py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg inline-flex items-center justify-center gap-2 group cursor-pointer text-sm"
             >
-              Explore My Work
+              View Selected Projects
               <ArrowDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
             </a>
             
             <a
               href="#about"
-              className="glass-card hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-900 dark:text-white font-medium px-8 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center justify-center cursor-pointer shadow-sm dark:shadow-none"
+              className="glass-card hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-900 dark:text-white font-medium px-8 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm dark:shadow-none text-sm group"
             >
-              Read My Story
+              About My Profile
+              <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </a>
           </motion.div>
 
