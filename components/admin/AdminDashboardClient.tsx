@@ -735,6 +735,35 @@ export default function AdminDashboardClient({
     setPromptOpen(true);
   };
 
+  // Guard against stuck body scroll locks
+  const isAnyModalOpen =
+    isProjModalOpen ||
+    isMediaModalOpen ||
+    isSkillModalOpen ||
+    isAchModalOpen ||
+    isCommModalOpen ||
+    isEditingAbout ||
+    isAssetPickerOpen ||
+    promptOpen ||
+    confirmOpen;
+
+  useEffect(() => {
+    if (!isAnyModalOpen) {
+      document.body.style.overflow = "";
+      activeModalCount = 0;
+    }
+  }, [isAnyModalOpen, activeTab]);
+
+  useEffect(() => {
+    // Safety cleanup on mount and unmount
+    document.body.style.overflow = "";
+    activeModalCount = 0;
+    return () => {
+      document.body.style.overflow = "";
+      activeModalCount = 0;
+    };
+  }, []);
+
   // Form resets
   const resetProjectForm = (overrideCatId?: string) => {
     setProjTitle("");
@@ -1911,7 +1940,7 @@ export default function AdminDashboardClient({
                   })}
                   {filteredProjects.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+                      <td colSpan={7} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
                         <p className="text-sm font-medium">Tidak ada proyek yang sesuai filter atau pencarian.</p>
                         <button
                           type="button"
@@ -5875,6 +5904,22 @@ interface AdminEditModalProps {
   closeOnBackdropClick?: boolean;
 }
 
+let activeModalCount = 0;
+
+function lockBodyScroll() {
+  activeModalCount++;
+  if (activeModalCount === 1) {
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function unlockBodyScroll() {
+  activeModalCount = Math.max(0, activeModalCount - 1);
+  if (activeModalCount === 0) {
+    document.body.style.overflow = "";
+  }
+}
+
 function AdminEditModal({ 
   isOpen, 
   onClose, 
@@ -5884,26 +5929,27 @@ function AdminEditModal({
   closeOnBackdropClick = false
 }: AdminEditModalProps) {
   const [isPromptingClose, setIsPromptingClose] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  // Lock background body scroll and allow ESC key dismissal
+  // Lock background body scroll cleanly and allow ESC key dismissal
   useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+    if (!isOpen) return;
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-          onClose();
-        }
-      };
-      window.addEventListener("keydown", handleKeyDown);
+    lockBodyScroll();
 
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        window.removeEventListener("keydown", handleKeyDown);
-      };
-    }
-  }, [isOpen, onClose]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      unlockBodyScroll();
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
