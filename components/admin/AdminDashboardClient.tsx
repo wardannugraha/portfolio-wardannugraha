@@ -5,7 +5,8 @@ import {
   LayoutDashboard, FileText, Camera, Plus, Trash2, ArrowUpRight, LogOut,
   CheckCircle, Check, Loader2, User, Sliders, Trophy, Users, Edit2, X, Play,
   Bold, Italic, Link, Image, Video, Heading, List, Quote, AlertCircle,
-  ChevronUp, ChevronDown, Menu, ScrollText, Sparkles, GripVertical
+  ChevronUp, ChevronDown, Menu, ScrollText, Sparkles, GripVertical,
+  Search, Copy, Eye, UploadCloud, ExternalLink
 } from "lucide-react";
 import { parseEmbedUrl } from "@/lib/embedParser";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -115,12 +116,28 @@ export default function AdminDashboardClient({
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Filtering states
+  // Filtering and Search states
   const [selectedProjCategory, setSelectedProjCategory] = useState("all");
   const [selectedMediaCategory, setSelectedMediaCategory] = useState("all");
+  const [projSearchQuery, setProjSearchQuery] = useState("");
+  const [mediaSearchQuery, setMediaSearchQuery] = useState("");
+  const [projContentTab, setProjContentTab] = useState<"write" | "preview">("write");
+  const [isDraggingProjImage, setIsDraggingProjImage] = useState(false);
+  const [isDraggingMediaCover, setIsDraggingMediaCover] = useState(false);
 
-  const filteredProjects = projects.filter(p => selectedProjCategory === "all" || p.categoryId === selectedProjCategory);
-  const filteredMedia = media.filter(m => selectedMediaCategory === "all" || m.categoryId === selectedMediaCategory);
+  const filteredProjects = projects.filter(p => {
+    const matchesCat = selectedProjCategory === "all" || p.categoryId === selectedProjCategory;
+    const query = projSearchQuery.trim().toLowerCase();
+    const matchesQuery = !query || p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query);
+    return matchesCat && matchesQuery;
+  });
+
+  const filteredMedia = media.filter(m => {
+    const matchesCat = selectedMediaCategory === "all" || m.categoryId === selectedMediaCategory;
+    const query = mediaSearchQuery.trim().toLowerCase();
+    const matchesQuery = !query || m.title.toLowerCase().includes(query) || (m.description && m.description.toLowerCase().includes(query));
+    return matchesCat && matchesQuery;
+  });
 
   // Ordering states for forms
   const [projOrder, setProjOrder] = useState(0);
@@ -696,7 +713,7 @@ export default function AdminDashboardClient({
   };
 
   // Form resets
-  const resetProjectForm = () => {
+  const resetProjectForm = (overrideCatId?: string) => {
     setProjTitle("");
     setProjDesc("");
     setProjContent("");
@@ -707,17 +724,19 @@ export default function AdminDashboardClient({
     setProjLinks([]);
     setProjTechs([]);
     setProjTechInput("");
-    setProjCatId(categories[0]?.id || "");
+    const targetCat = overrideCatId || (selectedProjCategory !== "all" ? selectedProjCategory : (categories[0]?.id || ""));
+    setProjCatId(targetCat);
     setProjOrder(0);
   };
 
-  const resetMediaForm = () => {
+  const resetMediaForm = (overrideCatId?: string) => {
     setMediaTitle("");
     setMediaUrl("");
     setMediaCoverUrl("");
     setMediaDesc("");
     setMediaFeatured(false);
-    setMediaCatId(categories.find(c => c.slug === "photography")?.id || "");
+    const targetMediaCat = overrideCatId || (selectedMediaCategory !== "all" ? selectedMediaCategory : (categories.find(c => c.slug === "photography")?.id || categories[0]?.id || ""));
+    setMediaCatId(targetMediaCat);
     setMediaOrder(0);
   };
 
@@ -757,9 +776,7 @@ export default function AdminDashboardClient({
     setCommOrder(0);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
-    const inputEl = e.target;
-    const files = inputEl.files;
+  const uploadFilesList = async (files: File[], target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
     if (!files || files.length === 0) return;
 
     if (target === "project") setUploadingProjImage(true);
@@ -774,7 +791,7 @@ export default function AdminDashboardClient({
 
     try {
       const isMultiTarget = target === "content" || target === "achContent" || target === "commContent";
-      const filesToUpload = isMultiTarget ? Array.from(files) : [files[0]];
+      const filesToUpload = isMultiTarget ? files : [files[0]];
       let uploadSuccessCount = 0;
 
       for (const file of filesToUpload) {
@@ -823,17 +840,12 @@ export default function AdminDashboardClient({
       }
 
       if (uploadSuccessCount > 0) {
-        showNotification(`${uploadSuccessCount} image(s) uploaded and inserted successfully!`);
+        showNotification(`${uploadSuccessCount} image(s) uploaded successfully!`);
       }
     } catch (err) {
       console.error(err);
-      alert("Error uploading file");
+      alert("An error occurred during file upload");
     } finally {
-      // Clear file input value to allow re-uploading the same file
-      if (inputEl) {
-        inputEl.value = "";
-      }
-
       if (target === "project") setUploadingProjImage(false);
       else if (target === "about") setUploadingAboutPhoto(false);
       else if (target === "content") setUploadingContentImage(false);
@@ -844,6 +856,14 @@ export default function AdminDashboardClient({
       else if (target === "mediaCover") setUploadingMediaCover(false);
       else setUploadingMediaUrl(false);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "project" | "media" | "about" | "content" | "mediaCover" | "achievement" | "achContent" | "community" | "commContent") => {
+    const inputEl = e.target;
+    const files = inputEl.files;
+    if (!files || files.length === 0) return;
+    await uploadFilesList(Array.from(files), target);
+    inputEl.value = "";
   };
 
   const showNotification = (msg: string) => {
@@ -1496,31 +1516,53 @@ export default function AdminDashboardClient({
                     Drag & Drop reorder enabled
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
-                  <select
-                    value={selectedProjCategory}
-                    onChange={(e) => setSelectedProjCategory(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
-                  >
-                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Cari proyek..."
+                      value={projSearchQuery}
+                      onChange={(e) => setProjSearchQuery(e.target.value)}
+                      className="pl-8 pr-7 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors w-36 sm:w-52"
+                    />
+                    {projSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setProjSearchQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-white cursor-pointer"
+                        title="Reset pencarian"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider hidden sm:inline">Kategori:</span>
+                    <select
+                      value={selectedProjCategory}
+                      onChange={(e) => setSelectedProjCategory(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                    >
+                      <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">Semua Kategori</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="min-w-[860px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
-                      <th className="py-3 px-4">Image</th>
-                      <th className="py-3 px-4">Title</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Featured</th>
-                      <th className="py-3 px-4 text-center">Order</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4 w-16">Image</th>
+                      <th className="py-3 px-4 min-w-[200px]">Title</th>
+                      <th className="py-3 px-4 min-w-[130px]">Category</th>
+                      <th className="py-3 px-4 w-24">Featured</th>
+                      <th className="py-3 px-4 w-28 text-center">Order</th>
+                      <th className="py-3 px-4 w-44 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
@@ -1617,46 +1659,119 @@ export default function AdminDashboardClient({
                               </button>
                             </div>
                           </td>
-                        <td className="py-3 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingProjId(p.id);
-                              setProjTitle(p.title);
-                              setProjDesc(p.description);
-                              setProjTechs(parseTechStack(p.technologies));
-                              setProjTechInput("");
-                              setProjContent(p.content || "");
-                              setProjImage(p.featuredImage || (p as any).image || "");
-                              setProjCatId(p.categoryId);
-                              setProjFeatured(p.isFeatured);
-                              setProjOrder(p.order || 0);
-                              let parsedLinks = [];
-                              if (p.links) {
-                                try {
-                                  parsedLinks = JSON.parse(p.links);
-                                } catch (e) {
-                                  console.error("Failed to parse project links", e);
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                            <a
+                              href={`/projects/${p.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-zinc-500 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Lihat Halaman Proyek (Buka di Tab Baru)"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProjId(null);
+                                setProjTitle(`${p.title} (Salinan)`);
+                                setProjDesc(p.description);
+                                setProjContent(p.content || "");
+                                setProjImage(p.featuredImage || "");
+                                setProjDemo(p.demoUrl || "");
+                                setProjGit(p.githubUrl || "");
+                                setProjFeatured(false);
+                                setProjCatId(p.categoryId);
+                                setProjOrder(p.order || 0);
+
+                                let parsedTechs: string[] = [];
+                                if (p.technologies) {
+                                  try {
+                                    const parsed = JSON.parse(p.technologies);
+                                    if (Array.isArray(parsed)) parsedTechs = parsed;
+                                    else if (typeof parsed === "string") parsedTechs = parsed.split(",").map(s => s.trim());
+                                  } catch {
+                                    parsedTechs = p.technologies.split(",").map(s => s.trim());
+                                  }
                                 }
-                              }
-                              setProjLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
-                              setIsProjModalOpen(true);
-                            }}
-                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProject(p.id)}
-                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                                setProjTechs(parsedTechs);
+
+                                let parsedLinks = [];
+                                if (p.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(p.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse project links", e);
+                                  }
+                                }
+                                setProjLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+                                setIsProjModalOpen(true);
+                                showNotification("Data proyek disalin ke form! Silakan edit judul/link lalu Simpan.");
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Duplikat / Salin Proyek"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingProjId(p.id);
+                                setProjTitle(p.title);
+                                setProjDesc(p.description);
+                                setProjTechs(parseTechStack(p.technologies));
+                                setProjTechInput("");
+                                setProjContent(p.content || "");
+                                setProjImage(p.featuredImage || (p as any).image || "");
+                                setProjCatId(p.categoryId);
+                                setProjFeatured(p.isFeatured);
+                                setProjOrder(p.order || 0);
+                                let parsedLinks = [];
+                                if (p.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(p.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse project links", e);
+                                  }
+                                }
+                                setProjLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+                                setIsProjModalOpen(true);
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Edit Proyek"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProject(p.id)}
+                              className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Hapus Proyek"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
+                  {filteredProjects.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm font-medium">Tidak ada proyek yang sesuai filter atau pencarian.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            resetProjectForm();
+                            setEditingProjId(null);
+                            setIsProjModalOpen(true);
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Tambah Proyek Baru
+                        </button>
+                      </td>
+                    </tr>
+                  )}
                   </tbody>
                 </table>
               </div>
@@ -1787,8 +1902,38 @@ export default function AdminDashboardClient({
 
                   {/* Markdown Editor */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">Rich Case Study Markdown</label>
+                    <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                          Rich Case Study Markdown
+                        </label>
+                        <div className="inline-flex items-center bg-zinc-200/80 dark:bg-white/10 rounded-lg p-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setProjContentTab("write")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                              projContentTab === "write"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            Write
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProjContentTab("preview")}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                              projContentTab === "preview"
+                                ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                            }`}
+                          >
+                            <Eye className="w-3 h-3" />
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex gap-3">
                         <label className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer">
                           {uploadingContentImage ? (
@@ -1822,202 +1967,308 @@ export default function AdminDashboardClient({
                       </div>
                     </div>
 
-                    {/* Markdown Editor Toolbar */}
-                    <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          openCustomPrompt(
-                            "Insert Image Link",
-                            [
-                              { name: "url", label: "Image URL *", placeholder: "https://example.com/image.jpg", required: true },
-                              { name: "alt", label: "Description (Alt Text) - Optional", placeholder: "e.g. Project screenshot" }
-                            ],
-                            (values) => {
-                              const altText = values.alt || "Image";
-                              insertAtCursor(`![${altText}](${values.url})`);
-                            }
-                          );
-                        }}
-                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
-                        title="Insert Image Link"
-                      >
-                        <Image className="w-3 h-3" />
-                        <span className="hidden sm:inline">Image</span>
-                      </button>
+                    {projContentTab === "write" ? (
+                      <>
+                        {/* Markdown Editor Toolbar */}
+                        <div className="flex flex-wrap gap-1 p-1.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-t-xl">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openCustomPrompt(
+                                "Insert Image Link",
+                                [
+                                  { name: "url", label: "Image URL *", placeholder: "https://example.com/image.jpg", required: true },
+                                  { name: "alt", label: "Description (Alt Text) - Optional", placeholder: "e.g. Project screenshot" }
+                                ],
+                                (values) => {
+                                  const altText = values.alt || "Image";
+                                  insertAtCursor(`![${altText}](${values.url})`);
+                                }
+                              );
+                            }}
+                            className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
+                            title="Insert Image Link"
+                          >
+                            <Image className="w-3 h-3" />
+                            <span className="hidden sm:inline">Image</span>
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          openCustomPrompt(
-                            "Insert Video or Figma Embed",
-                            [
-                              { name: "url", label: "Embed URL (YouTube, Vimeo, Figma, etc.) *", placeholder: "https://youtube.com/watch?v=...", required: true },
-                              { name: "title", label: "Media Title - Optional", placeholder: "e.g. Project Demo Video" }
-                            ],
-                            (values) => {
-                              const mediaTitle = values.title || "Embed Media";
-                              insertAtCursor(`![${mediaTitle}](${values.url})`);
-                            }
-                          );
-                        }}
-                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
-                        title="Insert Video or Figma Embed"
-                      >
-                        <Video className="w-3 h-3" />
-                        <span className="hidden sm:inline">Embed</span>
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openCustomPrompt(
+                                "Insert Video or Figma Embed",
+                                [
+                                  { name: "url", label: "Embed URL (YouTube, Vimeo, Figma, etc.) *", placeholder: "https://youtube.com/watch?v=...", required: true },
+                                  { name: "title", label: "Media Title - Optional", placeholder: "e.g. Project Demo Video" }
+                                ],
+                                (values) => {
+                                  const mediaTitle = values.title || "Embed Media";
+                                  insertAtCursor(`![${mediaTitle}](${values.url})`);
+                                }
+                              );
+                            }}
+                            className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
+                            title="Insert Video or Figma Embed"
+                          >
+                            <Video className="w-3 h-3" />
+                            <span className="hidden sm:inline">Embed</span>
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          openCustomPrompt(
-                            "Insert Text Link",
-                            [
-                              { name: "url", label: "Link URL *", placeholder: "https://example.com", required: true },
-                              { name: "text", label: "Link Text *", placeholder: "e.g. Visit Website", required: true }
-                            ],
-                            (values) => {
-                              insertAtCursor(`[${values.text}](${values.url})`);
-                            }
-                          );
-                        }}
-                        className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
-                        title="Insert Text Link"
-                      >
-                        <Link className="w-3 h-3" />
-                        <span className="hidden sm:inline">Link</span>
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openCustomPrompt(
+                                "Insert Text Link",
+                                [
+                                  { name: "url", label: "Link URL *", placeholder: "https://example.com", required: true },
+                                  { name: "text", label: "Link Text *", placeholder: "e.g. Visit Website", required: true }
+                                ],
+                                (values) => {
+                                  insertAtCursor(`[${values.text}](${values.url})`);
+                                }
+                              );
+                            }}
+                            className="px-2 py-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
+                            title="Insert Text Link"
+                          >
+                            <Link className="w-3 h-3" />
+                            <span className="hidden sm:inline">Link</span>
+                          </button>
 
-                      <div className="w-px h-4 bg-zinc-300 dark:bg-white/10 mx-1 align-self-center" />
+                          <div className="w-px h-4 bg-zinc-300 dark:bg-white/10 mx-1 align-self-center" />
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const textarea = contentRef.current;
-                          if (textarea) {
-                            const start = textarea.selectionStart;
-                            const end = textarea.selectionEnd;
-                            const selected = projContent.substring(start, end);
-                            if (selected) {
-                              insertAtCursor(`**${selected}**`);
-                            } else {
-                              insertAtCursor(`**Bold Text**`);
-                            }
-                          } else {
-                            insertAtCursor(`**Bold Text**`);
-                          }
-                        }}
-                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
-                        title="Bold text"
-                      >
-                        <Bold className="w-3 h-3" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const textarea = contentRef.current;
+                              if (textarea) {
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                const selected = projContent.substring(start, end);
+                                if (selected) {
+                                  insertAtCursor(`**${selected}**`);
+                                } else {
+                                  insertAtCursor(`**Bold Text**`);
+                                }
+                              } else {
+                                insertAtCursor(`**Bold Text**`);
+                              }
+                            }}
+                            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
+                            title="Bold text"
+                          >
+                            <Bold className="w-3 h-3" />
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const textarea = contentRef.current;
-                          if (textarea) {
-                            const start = textarea.selectionStart;
-                            const end = textarea.selectionEnd;
-                            const selected = projContent.substring(start, end);
-                            if (selected) {
-                              insertAtCursor(`*${selected}*`);
-                            } else {
-                              insertAtCursor(`*Italic Text*`);
-                            }
-                          } else {
-                            insertAtCursor(`*Italic Text*`);
-                          }
-                        }}
-                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center italic cursor-pointer"
-                        title="Italic text"
-                      >
-                        <Italic className="w-3 h-3" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const textarea = contentRef.current;
+                              if (textarea) {
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                const selected = projContent.substring(start, end);
+                                if (selected) {
+                                  insertAtCursor(`*${selected}*`);
+                                } else {
+                                  insertAtCursor(`*Italic Text*`);
+                                }
+                              } else {
+                                insertAtCursor(`*Italic Text*`);
+                              }
+                            }}
+                            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center italic cursor-pointer"
+                            title="Italic text"
+                          >
+                            <Italic className="w-3 h-3" />
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          insertAtCursor(`\n### `);
-                        }}
-                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
-                        title="Heading 3"
-                      >
-                        <Heading className="w-3 h-3" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              insertAtCursor(`\n### `);
+                            }}
+                            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center font-bold cursor-pointer"
+                            title="Heading 3"
+                          >
+                            <Heading className="w-3 h-3" />
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          insertAtCursor(`\n- `);
-                        }}
-                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
-                        title="Bullet List"
-                      >
-                        <List className="w-3 h-3" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              insertAtCursor(`\n- `);
+                            }}
+                            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+                            title="Bullet List"
+                          >
+                            <List className="w-3 h-3" />
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          insertAtCursor(`\n> `);
-                        }}
-                        className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
-                        title="Quote"
-                      >
-                        <Quote className="w-3 h-3" />
-                      </button>
-                    </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              insertAtCursor(`\n> `);
+                            }}
+                            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+                            title="Quote"
+                          >
+                            <Quote className="w-3 h-3" />
+                          </button>
+                        </div>
 
-                    <textarea
-                      ref={contentRef}
-                      rows={8} value={projContent} onChange={e => setProjContent(e.target.value)}
-                      placeholder="Case study or full markdown content..."
-                      className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
-                    />
+                        <textarea
+                          ref={contentRef}
+                          rows={8} value={projContent} onChange={e => setProjContent(e.target.value)}
+                          placeholder="Case study or full markdown content..."
+                          className="w-full px-5 py-3.5 rounded-b-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 border-t-0 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200 resize-y"
+                        />
+                      </>
+                    ) : (
+                      <div className="w-full min-h-[220px] max-h-[360px] overflow-y-auto px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 text-sm">
+                        {renderAdminMarkdownPreview(projContent)}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  {/* Image Field with file upload selector */}
+                  {/* Image Field with file upload selector & Drag & Drop */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Featured Image *</label>
-                    <div className="flex flex-col gap-3">
-                      <input
-                        type="text" required value={projImage} onChange={e => setProjImage(e.target.value)}
-                        placeholder="/uploads/project1.jpg or external https:// url"
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
-                      />
-                      <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
-                          {uploadingProjImage ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
-                          ) : (
-                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
-                          )}
-                          <span>Upload File</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e, "project")}
-                            disabled={uploadingProjImage}
-                          />
-                        </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                        Featured Image *
+                      </label>
+                      {projImage && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setOnSelectAsset(() => (url: string) => setProjImage(url));
-                            setIsAssetPickerOpen(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          onClick={() => setProjImage("")}
+                          className="text-[11px] text-red-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Pilih Galeri</span>
+                          <X className="w-3 h-3" /> Hapus Foto
                         </button>
-                      </div>
+                      )}
+                    </div>
+
+                    {/* Drag & Drop Visual Box */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingProjImage(true);
+                      }}
+                      onDragLeave={() => setIsDraggingProjImage(false)}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        setIsDraggingProjImage(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          await uploadFilesList(Array.from(e.dataTransfer.files), "project");
+                        }
+                      }}
+                      className={`relative rounded-2xl border-2 border-dashed p-4 transition-all duration-200 text-center ${
+                        isDraggingProjImage
+                          ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
+                          : projImage
+                          ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]"
+                          : "border-zinc-300 dark:border-white/15 hover:border-violet-500/50 bg-zinc-100/50 dark:bg-white/[0.02]"
+                      }`}
+                    >
+                      {uploadingProjImage ? (
+                        <div className="py-6 flex flex-col items-center justify-center gap-2 text-violet-600 dark:text-violet-400">
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                          <span className="text-xs font-medium">Mengompres & Mengunggah gambar...</span>
+                        </div>
+                      ) : projImage ? (
+                        <div className="flex items-center gap-4 text-left">
+                          <div className="relative w-24 h-16 sm:w-32 sm:h-20 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-zinc-200 dark:border-white/10 flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={projImage}
+                              alt="Featured preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">
+                              Gambar Terpasang
+                            </p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                              {projImage}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <label className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1">
+                                <UploadCloud className="w-3 h-3" /> Ganti File
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "project")}
+                                />
+                              </label>
+                              <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOnSelectAsset(() => (url: string) => setProjImage(url));
+                                  setIsAssetPickerOpen(true);
+                                }}
+                                className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Camera className="w-3 h-3" /> Dari Galeri
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-4 flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                            <UploadCloud className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                              Drag & drop gambar ke sini, atau{" "}
+                              <label className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
+                                browse file
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "project")}
+                                  disabled={uploadingProjImage}
+                                />
+                              </label>
+                            </p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                              Mendukung PNG, JPG, WebP (otomatis di-resize dan kompresi WebP ringan)
+                            </p>
+                          </div>
+                          <div className="flex gap-2 mt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOnSelectAsset(() => (url: string) => setProjImage(url));
+                                setIsAssetPickerOpen(true);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-zinc-200/80 hover:bg-zinc-300 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Camera className="w-3 h-3" />
+                              Pilih dari Media Library
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* URL Input Fallback */}
+                    <div className="mt-2.5">
+                      <input
+                        type="text"
+                        required
+                        value={projImage}
+                        onChange={(e) => setProjImage(e.target.value)}
+                        placeholder="Atau tempel URL gambar langsung (https://...)"
+                        className="w-full px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
+                      />
                     </div>
                   </div>
                   <div>
@@ -2141,15 +2392,32 @@ export default function AdminDashboardClient({
                   )}
                 </div>
 
-                {/* Submit button (Full Width) */}
-                <div className="lg:col-span-2 pt-6 border-t border-zinc-200 dark:border-white/10">
-                  <button
-                    type="submit" disabled={loading}
-                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingProjId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    {editingProjId ? "Save Changes" : "Create Project"}
-                  </button>
+                {/* Sticky Action Footer */}
+                <div className="lg:col-span-2 sticky bottom-0 py-3.5 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md border-t border-zinc-200 dark:border-white/10 z-20 flex items-center justify-between gap-3 mt-4">
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 hidden sm:block">
+                    {editingProjId ? "Mengubah proyek yang ada" : "Membuat proyek baru"}
+                  </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProjModalOpen(false);
+                        setEditingProjId(null);
+                        resetProjectForm();
+                      }}
+                      className="px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-violet-500/10"
+                    >
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingProjId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      {editingProjId ? "Simpan Perubahan" : "Buat Proyek"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </AdminEditModal>
@@ -2181,32 +2449,54 @@ export default function AdminDashboardClient({
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-lg font-bold text-zinc-950 dark:text-white">Current Media Items ({filteredMedia.length})</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Filter Category:</span>
-                  <select
-                    value={selectedMediaCategory}
-                    onChange={(e) => setSelectedMediaCategory(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
-                  >
-                    <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">All Categories</option>
-                    {categories.filter(c => ["photography", "video-editing", "graphic-design"].includes(c.slug)).map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Cari media..."
+                      value={mediaSearchQuery}
+                      onChange={(e) => setMediaSearchQuery(e.target.value)}
+                      className="pl-8 pr-7 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors w-36 sm:w-52"
+                    />
+                    {mediaSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setMediaSearchQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-white cursor-pointer"
+                        title="Reset pencarian"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider hidden sm:inline">Kategori:</span>
+                    <select
+                      value={selectedMediaCategory}
+                      onChange={(e) => setSelectedMediaCategory(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-xs outline-none focus:border-violet-500 transition-colors"
+                    >
+                      <option value="all" className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">Semua Kategori</option>
+                      {categories.filter(c => ["photography", "video-editing", "graphic-design"].includes(c.slug)).map((cat) => (
+                        <option key={cat.id} value={cat.id} className="bg-white text-zinc-900 dark:bg-[#0f0f0f] dark:text-white">{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="min-w-[880px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
-                      <th className="py-3 px-4">Preview</th>
-                      <th className="py-3 px-4">Title</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">URL Preview</th>
-                      <th className="py-3 px-4">Featured</th>
-                      <th className="py-3 px-4 text-center">Order</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4 w-16">Preview</th>
+                      <th className="py-3 px-4 min-w-[180px]">Title</th>
+                      <th className="py-3 px-4 min-w-[130px]">Category</th>
+                      <th className="py-3 px-4 min-w-[160px]">URL Preview</th>
+                      <th className="py-3 px-4 w-24">Featured</th>
+                      <th className="py-3 px-4 w-28 text-center">Order</th>
+                      <th className="py-3 px-4 w-44 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
@@ -2332,35 +2622,86 @@ export default function AdminDashboardClient({
                               </button>
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-right space-x-2">
-                            <button
-                              onClick={() => {
-                                setEditingMediaId(m.id);
-                                setMediaTitle(m.title);
-                                setMediaUrl(vUrl || "");
-                                setMediaCoverUrl(cUrl || "");
-                                setMediaDesc(m.description || "");
-                                setMediaCatId(m.categoryId || "");
-                                setMediaFeatured(m.isFeatured);
-                                setMediaOrder(m.order || 0);
-                                setIsMediaModalOpen(true);
-                              }}
-                              className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteMedia(m.id)}
-                              className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                              {vUrl && (
+                                <a
+                                  href={vUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-zinc-500 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                  title="Buka / Preview Media (Tab Baru)"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingMediaId(null);
+                                  setMediaTitle(`${m.title} (Salinan)`);
+                                  setMediaUrl(vUrl || "");
+                                  setMediaCoverUrl(cUrl || "");
+                                  setMediaDesc(m.description || "");
+                                  setMediaCatId(m.categoryId || "");
+                                  setMediaFeatured(false);
+                                  setMediaOrder(m.order || 0);
+                                  setIsMediaModalOpen(true);
+                                  showNotification("Data media disalin ke form! Silakan sesuaikan lalu Simpan.");
+                                }}
+                                className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                title="Duplikat / Salin Media"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingMediaId(m.id);
+                                  setMediaTitle(m.title);
+                                  setMediaUrl(vUrl || "");
+                                  setMediaCoverUrl(cUrl || "");
+                                  setMediaDesc(m.description || "");
+                                  setMediaCatId(m.categoryId || "");
+                                  setMediaFeatured(m.isFeatured);
+                                  setMediaOrder(m.order || 0);
+                                  setIsMediaModalOpen(true);
+                                }}
+                                className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                title="Edit Media"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMedia(m.id)}
+                                className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                title="Hapus Media"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
                     })}
+                    {filteredMedia.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+                          <p className="text-sm font-medium">Tidak ada media yang sesuai filter atau pencarian.</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              resetMediaForm();
+                              setEditingMediaId(null);
+                              setIsMediaModalOpen(true);
+                            }}
+                            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-sm"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Tambah Media Baru
+                          </button>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2425,42 +2766,130 @@ export default function AdminDashboardClient({
                       </div>
                     </div>
                   </div>
+                  {/* Cover Image with Drag & Drop */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400 mb-2">Cover Image / Thumbnail (Optional for YouTube/IG/Vimeo/Figma/TikTok)</label>
-                    <div className="flex flex-col gap-3">
-                      <input
-                        type="text" value={mediaCoverUrl} onChange={e => setMediaCoverUrl(e.target.value)}
-                        placeholder="/uploads/cover.jpg or external thumbnail URL"
-                        className="w-full px-5 py-3.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-sm transition-all duration-200"
-                      />
-                      <div className="flex gap-2">
-                        <label className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-900 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors duration-250 border border-zinc-300 dark:border-white/5">
-                          {uploadingMediaCover ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-900 dark:text-white" />
-                          ) : (
-                            <Plus className="w-3.5 h-3.5 text-zinc-900 dark:text-white" />
-                          )}
-                          <span>Upload Cover</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e, "mediaCover")}
-                            disabled={uploadingMediaCover}
-                          />
-                        </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-400">
+                        Cover Image / Thumbnail (Optional for YouTube/IG/Vimeo/Figma/TikTok)
+                      </label>
+                      {mediaCoverUrl && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setOnSelectAsset(() => (url: string) => setMediaCoverUrl(url));
-                            setIsAssetPickerOpen(true);
-                          }}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-semibold text-xs tracking-wider uppercase border border-zinc-200 dark:border-white/5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          onClick={() => setMediaCoverUrl("")}
+                          className="text-[11px] text-red-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Pilih Galeri</span>
+                          <X className="w-3 h-3" /> Hapus Cover
                         </button>
-                      </div>
+                      )}
+                    </div>
+
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingMediaCover(true);
+                      }}
+                      onDragLeave={() => setIsDraggingMediaCover(false)}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        setIsDraggingMediaCover(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          await uploadFilesList(Array.from(e.dataTransfer.files), "mediaCover");
+                        }
+                      }}
+                      className={`relative rounded-2xl border-2 border-dashed p-4 transition-all duration-200 text-center ${
+                        isDraggingMediaCover
+                          ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
+                          : mediaCoverUrl
+                          ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]"
+                          : "border-zinc-300 dark:border-white/15 hover:border-violet-500/50 bg-zinc-100/50 dark:bg-white/[0.02]"
+                      }`}
+                    >
+                      {uploadingMediaCover ? (
+                        <div className="py-4 flex flex-col items-center justify-center gap-2 text-violet-600 dark:text-violet-400">
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <span className="text-xs font-medium">Mengunggah thumbnail...</span>
+                        </div>
+                      ) : mediaCoverUrl ? (
+                        <div className="flex items-center gap-4 text-left">
+                          <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-zinc-200 dark:border-white/10 flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={mediaCoverUrl}
+                              alt="Cover preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">
+                              Cover Terpasang
+                            </p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                              {mediaCoverUrl}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <label className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1">
+                                <UploadCloud className="w-3 h-3" /> Ganti Cover
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleFileUpload(e, "mediaCover")}
+                                />
+                              </label>
+                              <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOnSelectAsset(() => (url: string) => setMediaCoverUrl(url));
+                                  setIsAssetPickerOpen(true);
+                                }}
+                                className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Camera className="w-3 h-3" /> Dari Galeri
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-3 flex flex-col items-center justify-center gap-1.5">
+                          <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                            Drag & drop thumbnail ke sini, atau{" "}
+                            <label className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer font-semibold">
+                              browse
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e, "mediaCover")}
+                                disabled={uploadingMediaCover}
+                              />
+                            </label>
+                          </p>
+                          <div className="flex gap-2 mt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOnSelectAsset(() => (url: string) => setMediaCoverUrl(url));
+                                setIsAssetPickerOpen(true);
+                              }}
+                              className="px-3 py-1 rounded-lg bg-zinc-200/80 hover:bg-zinc-300 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Camera className="w-3 h-3" />
+                              Pilih Galeri
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={mediaCoverUrl}
+                        onChange={(e) => setMediaCoverUrl(e.target.value)}
+                        placeholder="Atau tempel URL thumbnail (https://...)"
+                        className="w-full px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-violet-500 focus:bg-white dark:focus:bg-white/[0.07] outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-xs transition-all duration-200"
+                      />
                     </div>
                   </div>
                 </div>
@@ -2505,14 +2934,34 @@ export default function AdminDashboardClient({
                       Featured (Highlight in Creative Gallery)
                     </label>
                   </div>
+                </div>
 
-                  <button
-                    type="submit" disabled={loading}
-                    className="w-full mt-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingMediaId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    {editingMediaId ? "Save Changes" : "Create Media Entry"}
-                  </button>
+                {/* Sticky Action Footer */}
+                <div className="lg:col-span-2 sticky bottom-0 py-3.5 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md border-t border-zinc-200 dark:border-white/10 z-20 flex items-center justify-between gap-3 mt-4">
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 hidden sm:block">
+                    {editingMediaId ? "Mengubah item media" : "Menambahkan item media baru"}
+                  </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMediaModalOpen(false);
+                        setEditingMediaId(null);
+                        resetMediaForm();
+                      }}
+                      className="px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-violet-500/10"
+                    >
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingMediaId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      {editingMediaId ? "Simpan Perubahan" : "Buat Item Media"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </AdminEditModal>
@@ -2894,15 +3343,15 @@ export default function AdminDashboardClient({
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="min-w-[750px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
-                      <th className="py-3 px-4">Skill Name</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Rating Visual</th>
-                      <th className="py-3 px-4 text-center">Order</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4 min-w-[160px]">Skill Name</th>
+                      <th className="py-3 px-4 min-w-[130px]">Category</th>
+                      <th className="py-3 px-4 w-40">Rating Visual</th>
+                      <th className="py-3 px-4 w-28 text-center">Order</th>
+                      <th className="py-3 px-4 w-32 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
@@ -2992,28 +3441,30 @@ export default function AdminDashboardClient({
                                 </button>
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-right space-x-2">
-                              <button
-                                onClick={() => {
-                                  setEditingSkillId(s.id);
-                                  setSkillName(s.name);
-                                  setSkillLevel(Number(s.level) || 80);
-                                  setSkillCategory(s.category);
-                                  setSkillOrder(s.order || 0);
-                                  setIsSkillModalOpen(true);
-                                }}
-                                className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                                title="Edit"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteSkill(s.id)}
-                                className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                            <td className="py-3 px-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                <button
+                                  onClick={() => {
+                                    setEditingSkillId(s.id);
+                                    setSkillName(s.name);
+                                    setSkillLevel(Number(s.level) || 80);
+                                    setSkillCategory(s.category);
+                                    setSkillOrder(s.order || 0);
+                                    setIsSkillModalOpen(true);
+                                  }}
+                                  className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                  title="Edit Skill"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSkill(s.id)}
+                                  className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                  title="Hapus Skill"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -3164,15 +3615,15 @@ export default function AdminDashboardClient({
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Credentials ({achievements.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="min-w-[780px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
-                      <th className="py-3 px-4">Title</th>
-                      <th className="py-3 px-4">Issuer</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4 text-center">Order</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4 min-w-[200px]">Title</th>
+                      <th className="py-3 px-4 min-w-[140px]">Issuer</th>
+                      <th className="py-3 px-4 w-28">Date</th>
+                      <th className="py-3 px-4 w-28 text-center">Order</th>
+                      <th className="py-3 px-4 w-40 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
@@ -3250,44 +3701,74 @@ export default function AdminDashboardClient({
                             </button>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingAchId(a.id);
-                              setAchTitle(a.title);
-                              setAchIssuer(a.issuer);
-                              setAchDate(a.date ? new Date(a.date).toISOString().split("T")[0] : "");
-                              setAchDesc(a.description || "");
-                              setAchImage(a.image || "");
-                              setAchContent(a.content || "");
-                              setAchOrder(a.order || 0);
-                              let parsedLinks = [];
-                              if (a.links) {
-                                try {
-                                  parsedLinks = JSON.parse(a.links);
-                                } catch (e) {
-                                  console.error("Failed to parse achievement links", e);
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                            <a
+                              href={`/credentials/${a.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-zinc-500 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Lihat Detail Kredensial (Tab Baru)"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <button
+                              onClick={() => {
+                                setEditingAchId(a.id);
+                                setAchTitle(a.title);
+                                setAchIssuer(a.issuer);
+                                setAchDate(a.date ? new Date(a.date).toISOString().split("T")[0] : "");
+                                setAchDesc(a.description || "");
+                                setAchImage(a.image || "");
+                                setAchContent(a.content || "");
+                                setAchOrder(a.order || 0);
+                                let parsedLinks = [];
+                                if (a.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(a.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse achievement links", e);
+                                  }
                                 }
-                              }
-                              setAchLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
-                              setIsAchModalOpen(true);
-                            }}
-                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteAchievement(a.id)}
-                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                                setAchLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+                                setIsAchModalOpen(true);
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Edit Kredensial"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAchievement(a.id)}
+                              className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Hapus Kredensial"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
+                  {achievements.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm font-medium">Belum ada data prestasi atau penghargaan.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            resetAchForm();
+                            setEditingAchId(null);
+                            setIsAchModalOpen(true);
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Tambah Prestasi Baru
+                        </button>
+                      </td>
+                    </tr>
+                  )}
                   </tbody>
                 </table>
               </div>
@@ -3713,16 +4194,16 @@ export default function AdminDashboardClient({
             <div className="glass-card rounded-3xl p-6 border border-zinc-200/80 dark:border-white/5">
               <h2 className="text-lg font-bold text-zinc-950 dark:text-white mb-6">Current Activities ({community.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="min-w-[820px] w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-zinc-400 text-xs uppercase font-semibold">
                       <th className="py-3 px-3 w-8 text-center" title="Drag Handle"></th>
-                      <th className="py-3 px-4">Title</th>
-                      <th className="py-3 px-4">Role</th>
-                      <th className="py-3 px-4">Organization</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4 text-center">Order</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4 min-w-[180px]">Title</th>
+                      <th className="py-3 px-4 min-w-[130px]">Role</th>
+                      <th className="py-3 px-4 min-w-[140px]">Organization</th>
+                      <th className="py-3 px-4 w-28">Date</th>
+                      <th className="py-3 px-4 w-28 text-center">Order</th>
+                      <th className="py-3 px-4 w-36 text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200/80 dark:divide-white/5 text-sm">
@@ -3799,45 +4280,66 @@ export default function AdminDashboardClient({
                             </button>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingCommId(c.id);
-                              setCommTitle(c.title);
-                              setCommRole(c.role);
-                              setCommOrg(c.organization);
-                              setCommDateRange(c.dateRange);
-                              setCommDesc(c.description || "");
-                              setCommImage(c.image || "");
-                              setCommContent(c.content || "");
-                              setCommOrder(c.order || 0);
-                              let parsedLinks = [];
-                              if (c.links) {
-                                try {
-                                  parsedLinks = JSON.parse(c.links);
-                                } catch (e) {
-                                  console.error("Failed to parse community links:", e);
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                            <button
+                              onClick={() => {
+                                setEditingCommId(c.id);
+                                setCommTitle(c.title);
+                                setCommRole(c.role);
+                                setCommOrg(c.organization);
+                                setCommDateRange(c.dateRange);
+                                setCommDesc(c.description || "");
+                                setCommImage(c.image || "");
+                                setCommContent(c.content || "");
+                                setCommOrder(c.order || 0);
+                                let parsedLinks = [];
+                                if (c.links) {
+                                  try {
+                                    parsedLinks = JSON.parse(c.links);
+                                  } catch (e) {
+                                    console.error("Failed to parse community links:", e);
+                                  }
                                 }
-                              }
-                              setCommLinks(parsedLinks);
-                              setIsCommModalOpen(true);
-                            }}
-                            className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCommunity(c.id)}
-                            className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                                setCommLinks(parsedLinks);
+                                setIsCommModalOpen(true);
+                              }}
+                              className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Edit Aktivitas"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCommunity(c.id)}
+                              className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                              title="Hapus Aktivitas"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
+                  {community.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm font-medium">Belum ada pengalaman organisasi atau kepemimpinan.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            resetCommForm();
+                            setEditingCommId(null);
+                            setIsCommModalOpen(true);
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Tambah Organisasi Baru
+                        </button>
+                      </td>
+                    </tr>
+                  )}
                   </tbody>
                 </table>
               </div>
@@ -4557,6 +5059,104 @@ export default function AdminDashboardClient({
   );
 }
 
+function renderAdminMarkdownPreview(text: string) {
+  if (!text.trim()) {
+    return (
+      <div className="py-12 text-center text-zinc-400 dark:text-zinc-500 text-xs italic">
+        Belum ada konten artikel. Tulis di tab &quot;Write&quot; untuk melihat preview.
+      </div>
+    );
+  }
+
+  const lines = text.split("\n");
+  const listItems: React.ReactNode[] = [];
+  const elements: React.ReactNode[] = [];
+
+  const pushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} className="list-disc pl-5 my-2 space-y-1 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
+          {[...listItems]}
+        </ul>
+      );
+      listItems.length = 0;
+    }
+  };
+
+  const parseInlinePreview = (lineText: string) => {
+    const regex = /(\*\*.*?\*\*|\[.*?\]\(.*?\))/g;
+    const matches = lineText.split(regex);
+    return matches.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-bold text-zinc-950 dark:text-white">{part.slice(2, -2)}</strong>;
+      } else if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
+        const labelEnd = part.indexOf("]");
+        const urlStart = part.indexOf("(") + 1;
+        const label = part.substring(1, labelEnd);
+        const url = part.substring(urlStart, part.length - 1);
+        return (
+          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-violet-600 dark:text-violet-400 underline font-medium inline-flex items-center gap-0.5">
+            {label} ↗
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith("### ")) {
+      pushList();
+      elements.push(<h3 key={i} className="text-sm sm:text-base font-bold mt-4 mb-2 text-zinc-950 dark:text-white">{parseInlinePreview(line.substring(4))}</h3>);
+    } else if (line.startsWith("## ")) {
+      pushList();
+      elements.push(<h2 key={i} className="text-base sm:text-lg font-bold mt-5 mb-2 text-zinc-950 dark:text-white border-b border-zinc-200 dark:border-white/10 pb-1">{parseInlinePreview(line.substring(3))}</h2>);
+    } else if (line.startsWith("# ")) {
+      pushList();
+      elements.push(<h1 key={i} className="text-lg sm:text-xl font-extrabold mt-6 mb-3 text-zinc-950 dark:text-white">{parseInlinePreview(line.substring(2))}</h1>);
+    } else if (line.startsWith("- ") || line.startsWith("* ")) {
+      listItems.push(<li key={i}>{parseInlinePreview(line.substring(2))}</li>);
+    } else if (line.startsWith("> ")) {
+      pushList();
+      elements.push(<blockquote key={i} className="border-l-2 border-violet-500 pl-3 italic text-zinc-600 dark:text-zinc-400 my-2 text-xs">{parseInlinePreview(line.substring(2))}</blockquote>);
+    } else if (line.startsWith("![") && line.includes("](") && line.endsWith(")")) {
+      pushList();
+      const alt = line.substring(2, line.indexOf("]"));
+      const url = line.substring(line.indexOf("(") + 1, line.length - 1);
+      const embedInfo = parseEmbedUrl(url);
+
+      if (embedInfo.isExternal && embedInfo.embedUrl) {
+        const isVertical = embedInfo.type === "instagram" || embedInfo.type === "tiktok";
+        elements.push(
+          <div key={i} className={`my-3 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10 ${isVertical ? "aspect-[9/16] max-w-[220px] mx-auto" : "aspect-video max-w-md mx-auto"} w-full bg-black/5`}>
+            <iframe src={embedInfo.embedUrl} title={alt} className="w-full h-full border-none" allowFullScreen />
+          </div>
+        );
+      } else if (embedInfo.type === "direct") {
+        elements.push(
+          <div key={i} className="my-3 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10 aspect-video max-w-md mx-auto w-full bg-black/5">
+            <video src={url} controls className="w-full h-full object-contain" />
+          </div>
+        );
+      } else {
+        elements.push(
+          <div key={i} className="my-3 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-white/5 p-1">
+            <img src={url} alt={alt} className="max-h-56 mx-auto object-contain rounded-lg" />
+          </div>
+        );
+      }
+    } else if (line === "") {
+      pushList();
+    } else {
+      pushList();
+      elements.push(<p key={i} className="text-zinc-700 dark:text-zinc-300 text-xs sm:text-sm leading-relaxed mb-2 font-normal">{parseInlinePreview(line)}</p>);
+    }
+  }
+  pushList();
+  return elements;
+}
+
 interface AdminEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -4575,6 +5175,26 @@ function AdminEditModal({
   closeOnBackdropClick = false
 }: AdminEditModalProps) {
   const [isPromptingClose, setIsPromptingClose] = useState(false);
+
+  // Lock background body scroll and allow ESC key dismissal
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -4595,12 +5215,12 @@ function AdminEditModal({
         onClick={handleBackdropClick}
       />
       {/* Modal Content */}
-      <div className={`relative bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-y-auto z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 text-zinc-900 dark:text-white ${
+      <div className={`relative bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 ${maxWidthClass} w-full max-h-[90vh] overflow-hidden z-10 border shadow-2xl transition-all duration-300 flex flex-col gap-6 text-zinc-900 dark:text-white ${
         isPromptingClose 
           ? "border-violet-500/80 shadow-violet-500/20 shadow-2xl scale-[1.005]" 
           : "border-zinc-200/80 dark:border-white/10"
       }`}>
-        <div className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-white/5">
+        <div className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-white/5 flex-shrink-0">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-zinc-950 dark:text-white">{title}</h2>
             {isPromptingClose && (
@@ -4618,7 +5238,7 @@ function AdminEditModal({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-[72vh] md:max-h-[76vh] pr-1 text-zinc-900 dark:text-zinc-100">
+        <div className="overflow-y-auto overflow-x-hidden flex-1 overscroll-contain pr-1 text-zinc-900 dark:text-zinc-100">
           {children}
         </div>
       </div>

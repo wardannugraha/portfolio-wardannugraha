@@ -24,13 +24,15 @@ if (!globalForPrisma.prisma) {
       port: port ? parseInt(port, 10) : 5432,
       database,
       ssl: host.includes("neon.tech") ? { rejectUnauthorized: false } : undefined,
-      connectionTimeoutMillis: 15000,
-      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 45000,
+      idleTimeoutMillis: 60000,
     });
   } else {
     pool = new Pool({
       connectionString: rawUrl || "postgresql://placeholder_user:placeholder_password@localhost:5432/placeholder_db",
       ssl: rawUrl.includes("neon.tech") ? { rejectUnauthorized: false } : undefined,
+      connectionTimeoutMillis: 45000,
+      idleTimeoutMillis: 60000,
     });
   }
 
