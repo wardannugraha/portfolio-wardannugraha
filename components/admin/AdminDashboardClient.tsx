@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { parseEmbedUrl } from "@/lib/embedParser";
 import ThemeToggle from "@/components/ThemeToggle";
-import CvGeneratorTab from "@/components/admin/cv/CvGeneratorTab";
 
 interface Category {
   id: string;
@@ -110,7 +109,7 @@ export default function AdminDashboardClient({
   initialCvProfilesData
 }: AdminDashboardClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "cv" | "projects" | "media" | "about" | "skills" | "achievements" | "community" | "contact">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "projects" | "media" | "about" | "skills" | "achievements" | "community" | "contact">("dashboard");
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [media, setMedia] = useState<Media[]>(initialMedia);
   const [loading, setLoading] = useState(false);
@@ -1369,7 +1368,6 @@ export default function AdminDashboardClient({
               { id: "achievements", name: "Credentials & Awards", icon: Trophy },
               { id: "community", name: "Community Experience", icon: Users },
               { id: "contact", name: "Contact & Socials", icon: Link },
-              { id: "cv", name: "ATS CV Generator", icon: ScrollText },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1465,30 +1463,6 @@ export default function AdminDashboardClient({
               </div>
             </div>
           </>
-        )}
-
-        {activeTab === "cv" && (
-          <CvGeneratorTab
-            initialProjects={projects}
-            initialSkills={skills}
-            initialAchievements={achievements}
-            initialAboutMe={aboutMe}
-            initialAboutName={aboutName}
-            initialAboutPhoto={aboutPhoto}
-            initialContactLinks={JSON.stringify(contactLinks)}
-            initialCvProfilesData={initialCvProfilesData}
-            onSaveSetting={async (key, value) => {
-              const res = await fetch("/api/admin/settings", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ key, value }),
-              });
-              if (res.ok) {
-                showNotification("CV Presets saved successfully to database!");
-              }
-              return res.ok;
-            }}
-          />
         )}
 
         {activeTab === "projects" && (
